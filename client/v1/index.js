@@ -4,6 +4,9 @@
 
 console.log('🚀 This is it.');
 
+// varible en majuscule : variable pour stocker des constantes //list/tableau
+// json: std qui permet à plusieurs langages de communiquer entre eux 
+// tableau json avec pour chaque element un name et un url 
 const MY_FAVORITE_DEALERS = [
   {
     'name': 'Dealabs',
@@ -12,11 +15,11 @@ const MY_FAVORITE_DEALERS = [
   {
     'name': 'Avenue de la brique',
     'url': 'https://www.avenuedelabrique.com/promotions-et-bons-plans-lego'
-  }
+  },
 ];
 
-console.table(MY_FAVORITE_DEALERS);
-console.log(MY_FAVORITE_DEALERS[0]);
+console.table(MY_FAVORITE_DEALERS); // afficher sous forme de tableau dans la console
+console.log(MY_FAVORITE_DEALERS[0]); //Afficher l'index 0 du tableau 
 
 /**
  * 🌱
@@ -29,6 +32,9 @@ console.log(MY_FAVORITE_DEALERS[0]);
 // 0. I have 2 favorite lego sets shopping communities stored in MY_FAVORITE_DEALERS variable
 // 1. Create a new variable and assign it the link of the lego set with the highest reduction I can find on these 2 websites
 // 2. Log the variable
+console.log("TODO1\n");
+const linkBestReduc = 'https://www.avenuedelabrique.com/lego-movie/70828-le-bus-discotheque/p5212';
+console.log("best reduc: "+linkBestReduc);
 
 /**
  * 🧱
@@ -42,11 +48,17 @@ console.log(MY_FAVORITE_DEALERS[0]);
 // 🎯 TODO 2: Number of deals
 // 1. Create a variable and assign it the number of deals
 // 2. Log the variable
+console.log("TODO2\n");
+const nbOfDeals = deals.length;
+console.log("nb of deal: "+nbOfDeals);
 
 // 🎯 TODO 3: Website name
 // 1. Create a variable and assign it the list of shopping community name only
 // 2. Log the variable
 // 3. Log how many shopping communities we have
+console.log("TODO3\n");
+const listCommunityName = deals.map(deal => deal.community);
+console.log("list of shopping community: "+listCommunityName);
 
 // 🎯 TODO 4: Sort by price
 // 1. Create a function to sort the deals by price
