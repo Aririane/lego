@@ -57,13 +57,22 @@ console.log("nb of deal: "+nbOfDeals);
 // 2. Log the variable
 // 3. Log how many shopping communities we have
 console.log("TODO3\n");
-const listCommunityName = deals.map(deal => deal.community);
+const listCommunityName = [...new Set(deals.map(deal => deal.community))];
 console.log("list of shopping community: "+listCommunityName);
+console.log("nb shopping commu : "+listCommunityName.length)
 
 // 🎯 TODO 4: Sort by price
 // 1. Create a function to sort the deals by price
 // 2. Create a variable and assign it the list of sets by price from lowest to highest
 // 3. Log the variable
+console.log("TODO4\n");
+function sortByPrice(deals) { 
+  return deals.sort((a, b) => a.price - b.price);
+} 
+
+const listSetByPrice = sortByPrice(deals);
+console.log("list of sets by price from lowest: "+ listSetByPrice);
+
 
 // 🎯 TODO 5: Sort by date
 // 1. Create a function to sort the deals by date
