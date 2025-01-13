@@ -97,6 +97,10 @@ console.log("list deals btw 50% and 75%"+discountBtw50_75);
 // 🎯 TODO 7: Average percentage discount
 // 1. Determine the average percentage discount of the deals
 // 2. Log the average
+const totalDiscount = deals.reduce((sum,deal) => sum + deal.discount,0);
+const averageDiscount = totalDiscount/deals.length;
+
+console.log("Average Discount Rate:"+averageDiscount);
 
 /**
  * 🏎
