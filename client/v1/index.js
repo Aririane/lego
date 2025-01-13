@@ -160,7 +160,16 @@ Object.keys(community).forEach(commu => {
 // 🎯 TODO 10: Sort by date for each community
 // 1. For each set, sort the deals by date, from old to recent
 // 2. Log the sort
+console.log("TODO10\n");
+function sortByDateOld(deals){
+  return deals.sort((a, b)=> new Date(a.published) - new Date(b.published));
+}
 
+Object.keys(community).forEach(commu => {
+  community[commu] = sortByDateOld(community[commu]);
+
+  console.log(`Sorted deals by date for community "${commu}":`, community[commu]);
+});
 
 /**
  * 🧥
