@@ -462,6 +462,33 @@ const VINTED = [
 // 3. Compute the p25 price value of the listing
 // The p25 value (25th percentile) is the lower value expected to be exceeded in 25% of the vinted items
 
+console.log("TODO 11\n");
+
+//average
+const averageVinted = VINTED.reduce((sum,item)=>sum+parseFloat(item.price),0)/VINTED.length;
+
+
+//sort item du plus petit au plus grand
+const sortedPricesVinted = VINTED.map(item => item.price).sort((a, b) => a - b);
+
+function calculatePercentile(prices, percentile){
+  const index = (percentile/100)*(prices.length-1);
+  const lower = Math.floor(index);
+  const upper = Math.ceil(index);
+  if (lower == upper){
+    return prices[lower];
+  }
+  return prices[lower] + (index - lower) * (prices[upper] - prices[lower]);
+}
+
+const p5 = calculatePercentile(sortedPricesVinted,5);
+const p25 = calculatePercentile(sortedPricesVinted,25);
+
+console.log("Average price: ", averageVinted);
+console.log("p5 price value: ", p5);
+console.log("p25 price value: ", p25);
+
+
 // 🎯 TODO 12: Very old listed items
 // // 1. Log if we have very old items (true or false)
 // // A very old item is an item `published` more than 3 weeks ago.
@@ -474,7 +501,7 @@ const VINTED = [
 // 1. Delete the item with the uuid `f2c5377c-84f9-571d-8712-98902dcbb913`
 // 2. Log the new list of items
 
-// 🎯 TODO 5: Save a favorite item
+// 🎯 TODO 15: Save a favorite item
 // We declare and assign a variable called `sealedCamera`
 let sealedCamera = {
   link: "https://www.vinted.fr/items/5563396347-lego-43230-omaggio-a-walter-disney-misb",
@@ -505,7 +532,7 @@ sealedCamera = {
 // 3. Update `camera` property with `favorite` to true WITHOUT changing sealedCamera properties
 
 
-// 🎯 TODO 11: Compute the profitability
+// 🎯 TODO 16: Compute the profitability
 // From a specific deal called `deal`
 const deal = {
   'title':  'La caméra Hommage à Walt Disney',
@@ -513,7 +540,6 @@ const deal = {
   'price': 56.98,
   'legoId': '43230'
 }
-
 // 1. Compute the potential highest profitability based on the VINTED items
 // 2. Log the value
 
