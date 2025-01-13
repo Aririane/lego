@@ -97,6 +97,7 @@ console.log("list deals btw 50% and 75%"+discountBtw50_75);
 // 🎯 TODO 7: Average percentage discount
 // 1. Determine the average percentage discount of the deals
 // 2. Log the average
+console.log("TODO7\n");
 const totalDiscount = deals.reduce((sum,deal) => sum + deal.discount,0);
 const averageDiscount = totalDiscount/deals.length;
 
@@ -124,10 +125,27 @@ console.log("Average Discount Rate:"+averageDiscount);
 //
 // 2. Log the variable
 // 3. Log the number of deals by community
+console.log("TODO8\n");
+const community = deals.reduce((acc, deal)=>{
+  //create new key is the acc is not already in the variable
+  if(!acc[deal.community]){
+    acc[deal.community]=[];
+  }
 
+  // push the value in the good community
+  acc[deal.community].push(deal);
+  return acc;
+}, {})
+
+console.log("deals by community:", community)
+
+Object.keys(community).forEach(commu=>{
+console.log("Number deals by community: ",commu,"=",community[commu].length)});
 // 🎯 TODO 9: Sort by price for each community
 // 1. For each community, sort the deals by discount price, from highest to lowest
 // 2. Log the sort
+console.log("TODO9\n");
+
 
 // 🎯 TODO 10: Sort by date for each community
 // 1. For each set, sort the deals by date, from old to recent
