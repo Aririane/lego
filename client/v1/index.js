@@ -141,11 +141,21 @@ console.log("deals by community:", community)
 
 Object.keys(community).forEach(commu=>{
 console.log("Number deals by community: ",commu,"=",community[commu].length)});
+
 // 🎯 TODO 9: Sort by price for each community
 // 1. For each community, sort the deals by discount price, from highest to lowest
 // 2. Log the sort
 console.log("TODO9\n");
 
+function sortByPriceDec(deals) { 
+  return deals.sort((a, b) => b.price - a.price);
+} 
+
+Object.keys(community).forEach(commu => {
+  community[commu] = sortByPriceDec(community[commu]);
+
+  console.log(`Sorted deals by discount for community "${commu}":`, community[commu]);
+});
 
 // 🎯 TODO 10: Sort by date for each community
 // 1. For each set, sort the deals by date, from old to recent
