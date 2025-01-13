@@ -467,7 +467,6 @@ console.log("TODO 11\n");
 //average
 const averageVinted = VINTED.reduce((sum,item)=>sum+parseFloat(item.price),0)/VINTED.length;
 
-
 //sort item du plus petit au plus grand
 const sortedPricesVinted = VINTED.map(item => item.price).sort((a, b) => a - b);
 
@@ -488,10 +487,18 @@ console.log("Average price: ", averageVinted);
 console.log("p5 price value: ", p5);
 console.log("p25 price value: ", p25);
 
-
 // 🎯 TODO 12: Very old listed items
 // // 1. Log if we have very old items (true or false)
 // // A very old item is an item `published` more than 3 weeks ago.
+console.log("TODO 12\n");
+
+const today = new Date();
+const threeWeeksAgo = new Date();
+threeWeeksAgo.setDate(today.getDate()-21); //3 semaines = 21jours
+
+const veryOldItems = VINTED.filter((item)=>new Date(item.published)<threeWeeksAgo)
+console.log("List Very old Items : ", VINTED.filter((item)=>new Date(item.published)<threeWeeksAgo));
+console.log("Very old Items : ",veryOldItems.length >0 ? true:false);
 
 // 🎯 TODO 13: Find a specific item
 // 1. Find the item with the uuid `f2c5377c-84f9-571d-8712-98902dcbb913`
