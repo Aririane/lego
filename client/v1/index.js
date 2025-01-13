@@ -503,6 +503,9 @@ console.log("Very old Items : ",veryOldItems.length >0 ? true:false);
 // 🎯 TODO 13: Find a specific item
 // 1. Find the item with the uuid `f2c5377c-84f9-571d-8712-98902dcbb913`
 // 2. Log the item
+console.log("TODO 13\n");
+
+console.log(" item with the uuid `f2c5377c-84f9-571d-8712-98902dcbb913` : ", VINTED.filter((item)=>item.uuid == `f2c5377c-84f9-571d-8712-98902dcbb913`));
 
 // 🎯 TODO 14: Delete a specific item
 // 1. Delete the item with the uuid `f2c5377c-84f9-571d-8712-98902dcbb913`
