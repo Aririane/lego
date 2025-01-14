@@ -536,6 +536,11 @@ camera.favorite = true;
 
 // 1. Log `sealedCamera` and `camera` variables
 // 2. What do you notice?
+console.log("TODO 15\n");
+console.log("Sealed Camera: ", sealedCamera);
+console.log("Camera: ", camera);
+
+// We remark that the 2 camera are the favorite variable to true
 
 // we make (again) a new assignment again
 sealedCamera = {
@@ -547,7 +552,12 @@ sealedCamera = {
 };
 
 // 3. Update `camera` property with `favorite` to true WITHOUT changing sealedCamera properties
+// Clone sealedCamera pour créer une copie indépendante
+camera = Object.assign({}, sealedCamera);
 
+camera.favorite = true;
+console.log("Sealed Camera: ", sealedCamera);
+console.log("Camera: ", camera);
 
 // 🎯 TODO 16: Compute the profitability
 // From a specific deal called `deal`
