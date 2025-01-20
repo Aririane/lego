@@ -31,6 +31,8 @@ const selectPage = document.querySelector('#page-select');
 const selectLegoSetIds = document.querySelector('#lego-set-id-select');
 const sectionDeals= document.querySelector('#deals');
 const spanNbDeals = document.querySelector('#nbDeals');
+//const selectOrder = document.querySelector('#order-selection');
+
 
 /**
  * Set global value
@@ -150,6 +152,37 @@ selectShow.addEventListener('change', async (event) => {
   setCurrentDeals(deals);
   render(currentDeals, currentPagination);
 });
+
+/**
+ * Select 
+ */
+
+/**
+ * Sort deals by discount
+ */
+const sortByBestDiscount = () => {
+  currentDeals.sort((a, b) => b.discount - a.discount); // Suppose que les deals ont une propriété 'discount'
+  render(currentDeals, currentPagination);
+};
+document.querySelector('#best-discount').addEventListener('click', sortByBestDiscount);
+
+/**
+ * Sort deals by most commented
+ */
+const sortByMostCommented = () => {
+  currentDeals.sort((a, b) => b.comments - a.comments); // Suppose que les deals ont une propriété 'comments'
+  render(currentDeals, currentPagination);
+};
+document.querySelector('#most-commented').addEventListener('click', sortByMostCommented);
+
+/**
+ * Sort deals by hot deals
+ */
+const sortByHotDeals = () => {
+  currentDeals.sort((a, b) => b.temperature - a.temperature); // Suppose que les deals ont une propriété 'popularity'
+  render(currentDeals, currentPagination);
+};
+document.querySelector('#hot-deals').addEventListener('click', sortByHotDeals);
 
 document.addEventListener('DOMContentLoaded', async () => {
   const deals = await fetchDeals();
