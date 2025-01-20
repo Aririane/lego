@@ -571,6 +571,17 @@ const deal = {
 // 2. Log the value
 
 console.log("TODO 16\n");
+
+let higestProfitability=0;
+
+VINTED.forEach(item =>{
+  const profitability = item.price - deal.price;
+  if(profitability > higestProfitability){
+    higestProfitability = profitability;
+  }
+})
+console.log("Potential highest profitability:", higestProfitability.toFixed(2))
+/*
 // Convertir les prix de VINTED en nombres pour effectuer les calculs
 const vintedPrices = VINTED.map(item => parseFloat(item.price));
 
@@ -581,7 +592,7 @@ const highestPrice = Math.max(...vintedPrices);
 const maxProfitability = highestPrice - deal.price;
 
 console.log("Highest price on VINTED:", highestPrice);
-console.log("Potential highest profitability:", maxProfitability.toFixed(2));
+console.log("Potential highest profitability:", maxProfitability.toFixed(2));*/
 
 /**
  * 🎬
