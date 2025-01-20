@@ -154,9 +154,18 @@ selectShow.addEventListener('change', async (event) => {
 });
 
 /**
- * Select 
+ * Select Page
  */
+selectPage.addEventListener('change', async (event) => {
+  const goToPage = parseInt(event.target.value);
 
+  console.log(goToPage);
+  
+  const deals = await fetchDeals(goToPage,parseInt(selectShow.value));
+
+  setCurrentDeals(deals);
+  render(currentDeals, currentPagination);
+});
 /**
  * Sort deals by discount
  */
