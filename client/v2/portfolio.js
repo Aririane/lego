@@ -25,6 +25,10 @@ This endpoint accepts the following optional query string parameters:
 let currentDeals = [];
 let currentPagination = {};
 
+// all deals to have good tri
+let allDeals = [];
+let currentSort = "";
+
 // instantiate the selectors
 const selectShow = document.querySelector('#show-select');
 const selectPage = document.querySelector('#page-select');
@@ -68,6 +72,7 @@ const fetchDeals = async (page = 1, size = 6) => {
     return {currentDeals, currentPagination};
   }
 };
+
 
 /**
  * Render list of deals
@@ -132,11 +137,14 @@ const renderIndicators = pagination => {
   spanNbDeals.innerHTML = count;
 };
 
+
+
 const render = (deals, pagination) => {
   renderDeals(deals);
   renderPagination(pagination);
   renderIndicators(pagination);
-  renderLegoSetIds(deals)
+  renderLegoSetIds(deals);
+  selectPrice.value = "selection";
 };
 
 /**
@@ -198,15 +206,22 @@ document.querySelector('#hot-deals').addEventListener('click', sortByHotDeals);
  * Sort deals by price
  */
 selectPrice.addEventListener('change', async (event) => {
-  const b =0;
+  if (!event.target.value) return;
+  currentSort = event.target.value;
   if(event.target.value=="price-desc"){
     currentDeals.sort((a, b) => b.price - a.price); // Suppose que les deals ont une propriété 'popularity'
-    render(currentDeals, currentPagination);
   }
   if(event.target.value == "price-asc"){
     currentDeals.sort((a, b) => a.price - b.price); // Suppose que les deals ont une propriété 'popularity'
-    render(currentDeals, currentPagination);
   }
+  if(event.target.value=="date-desc"){
+    currentDeals.sort((a, b) => a.published - b.published); // Suppose que les deals ont une propriété 'popularity'
+  }
+  if(event.target.value == "date-asc"){
+    currentDeals.sort((a, b) => b.published - a.published); // Suppose que les deals ont une propriété 'popularity'
+  }
+  render(currentDeals, currentPagination);
+  selectPrice.value = currentSort;
   console.log(event.target.value);
 });
 
@@ -216,4 +231,5 @@ document.addEventListener('DOMContentLoaded', async () => {
 
   setCurrentDeals(deals);
   render(currentDeals, currentPagination);
+
 });
