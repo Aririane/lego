@@ -40,7 +40,8 @@ const spanAverage = document.querySelector('#average');
 const spanP5 = document.querySelector('#p5');
 const spanP25 = document.querySelector('#p25');
 const spanP50 = document.querySelector('#p50');
-const selectPrice = document.querySelector('#sort-select')
+const spanLifeTime = document.querySelector('#lifetime');
+const selectPrice = document.querySelector('#sort-select');
 
 
 /**
@@ -155,25 +156,23 @@ const renderIndicators =(pagination, sales) => {
   const {count} = pagination;
   const countSales = sales ? sales.length : 0; // if sales is not selectionned
 
- // Si aucune vente n'est disponible, on affiche "N/A" pour les indicateurs
- if (sales.length === 0) {
-  spanAverage.innerHTML = 'N/A';
-  spanP5.innerHTML = 'N/A';
-  spanP25.innerHTML = 'N/A';
-  spanP50.innerHTML = 'N/A';
-  return;
-}
+  //  if sales is not selectionned
+  if (sales.length === 0) {
+    spanAverage.innerHTML = 'N/A';
+    spanP5.innerHTML = 'N/A';
+    spanP25.innerHTML = 'N/A';
+    spanP50.innerHTML = 'N/A';
+    return;
+  }
 
-// Convertir les prix en nombres et trier
-const prices = sales
-  .map(sale => parseFloat(sale.price))
-  .filter(price => !isNaN(price))  // Filtrer les valeurs non valides
-  .sort((a, b) => a - b);  // Trier les prix de manière croissante
+  // Convert price in float and order
+  const prices = sales
+    .map(sale => parseFloat(sale.price))
+    .filter(price => !isNaN(price))  // Filter NaN value
+    .sort((a, b) => a - b);  // Order ( croissant)
 
-  // Calcul de l'average (moyenne)
   const average = prices.reduce((sum, price) => sum + price, 0) / prices.length;
 
-  // Fonction pour calculer les percentiles
   function calculatePercentile(prices, percentile) {
     const index = (percentile / 100) * (prices.length - 1);
     const lower = Math.floor(index);
@@ -183,53 +182,63 @@ const prices = sales
     }
     return prices[lower] + (index - lower) * (prices[upper] - prices[lower]);
   }
-
-  // Calcul des percentiles
   const p5 = calculatePercentile(prices, 5);
   const p25 = calculatePercentile(prices, 25);
   const p50 = calculatePercentile(prices, 50);
 
-  // Affichage des résultats arrondis à 2 décimales  
+  // print result 2 decimal
   spanNbDeals.innerHTML = count;
   spanNbSales.innerHTML = countSales;
   spanAverage.innerHTML = average.toFixed(2);
   spanP5.innerHTML = p5.toFixed(2);
   spanP25.innerHTML = p25.toFixed(2);
   spanP50.innerHTML = p50.toFixed(2);
+
+  // calculate lifetime
+  const currentDate = new Date();
+  const lifetimeValues = sales.map((sale) => {
+    const publishedDate = new Date(sale.published); // Assumer que 'published' est un timestamp ou une chaîne de date
+    return (currentDate - publishedDate) / (1000 * 60 * 60 * 24); // Calculer en jours
+  });
+
+  const averageLifetime = lifetimeValues.reduce((sum, lifetime) => sum + lifetime, 0) / lifetimeValues.length;
+
+  spanLifeTime.innerHTML = averageLifetime.toFixed(2)+" days"; 
+
 };
 
-/**
- * Render list of sales
- * @param  {Array} sales
- */
-const renderSales = (sales) => {
-  const fragment = document.createDocumentFragment();
-  const div = document.createElement('div');
-  const template = sales
-    .map((sale) => {
-      return `
-      <div class="sale">
-        <span>Sale ID: ${sale.uuid}</span>
-        <a href="${sale.link}">${sale.title}</a>
-        <span>Price: ${sale.price}</span>
-      </div>
-    `;
-    })
-    .join('');
+  /**
+   * Render list of sales
+   * @param  {Array} sales
+   */
+  const renderSales = (sales) => {
+    const fragment = document.createDocumentFragment();
+    const div = document.createElement('div');
+    const template = sales
+      .map((sale) => {
+        return `
+        <div class="sale">
+          <span>Sale ID: ${sale.uuid}</span>
+          <a href="${sale.link}">${sale.title}</a>
+          <span>Price: ${sale.price}</span>
+        </div>
+      `;
+      })
+      .join('');
 
-  div.innerHTML = template;
-  fragment.appendChild(div);
+    div.innerHTML = template;
+    fragment.appendChild(div);
 
-  // Create or update the sales section
-  let salesSection = document.querySelector('#sales');
-  if (!salesSection) {
-    salesSection = document.createElement('section');
-    salesSection.id = 'sales';
-    document.body.appendChild(salesSection); // Append to the body or a specific container
-  }
-  let salesCount = sales.length;
-  salesSection.innerHTML = `<h2>Vinted Sales - ${salesCount}</h2>`;
-  salesSection.appendChild(fragment);
+    // Create or update the sales section
+    let salesSection = document.querySelector('#sales');
+    if (!salesSection) {
+      salesSection = document.createElement('section');
+      salesSection.id = 'sales';
+      document.body.appendChild(salesSection); // Append to the body or a specific container
+    }
+    let salesCount = sales.length;
+    salesSection.innerHTML = `<h2>Vinted Sales - ${salesCount}</h2>`;
+    salesSection.appendChild(fragment);
 };
 
 
@@ -359,7 +368,8 @@ document.querySelector('#lego-set-id-select').addEventListener('change', async (
   if (!selectedSetId) return;
 
   const sales = await fetchSales(selectedSetId);
-
+  
+  console.log(Object.keys(sales[0]));
   //renderSales(sales);
   render(currentDeals, currentPagination, sales);
 });
