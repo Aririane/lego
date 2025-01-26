@@ -24,6 +24,7 @@ This endpoint accepts the following optional query string parameters:
 // current deals on the page
 let currentDeals = [];
 let currentPagination = {};
+let showFavoritesOnly = false;
 
 // all deals to have good tri
 let allDeals = [];
@@ -87,7 +88,40 @@ const fetchDeals = async (page = 1, size = 6) => {
 const renderDeals = deals => {
   const fragment = document.createDocumentFragment();
   const div = document.createElement('div');
-  const template = deals
+
+  // Création du bouton "Show Favorite Deals"
+  const showFavoritesBtn = document.createElement('button');
+  showFavoritesBtn.textContent = showFavoritesOnly ? 'Show All Deals' : 'Show Favorite Deals';
+  showFavoritesBtn.id = 'show-favorites-btn';
+
+  // Lier l'événement au bouton
+  showFavoritesBtn.addEventListener('click', () => {
+    showFavoritesOnly = !showFavoritesOnly; // Basculer l'état
+    renderDeals(deals); // Redessiner les deals en fonction de l'état
+  });
+
+  // Affichage des deals, filtrer les favoris si nécessaire
+  const dealsToDisplay = showFavoritesOnly 
+    ? deals.filter(deal => localStorage.getItem(`favorite-${deal.id}`) === 'true') // Récupérer uniquement les deals favoris
+    : deals;
+
+  const template = dealsToDisplay
+    .map(deal => {
+      const isFavorite = localStorage.getItem(`favorite-${deal.id}`) === 'true';
+      return `
+        <div class="deal" id="${deal.uuid}">
+          <span>${deal.id}</span>
+          <a href="${deal.link}" target="_blank">${deal.title}</a>
+          <span>${deal.price}€ </span>
+          <!-- Add Favorite -->
+          <button class="favorite-btn" data-id="${deal.id}" data-favorite="${isFavorite}">
+            ${isFavorite ? 'Remove from favorites' : 'Add to favorite'}
+          </button>
+        </div>
+      `;
+    })
+    .join('');
+  /*const template = deals
     .map(deal => {
       // verif id the deal is a favorite one
       const isFavorite = localStorage.getItem(`favorite-${deal.id}`) === 'true';
@@ -104,11 +138,12 @@ const renderDeals = deals => {
       </div>
     `;
     })
-    .join('');
+    .join('');*/
 
   div.innerHTML = template;
   fragment.appendChild(div);
   sectionDeals.innerHTML = '<h2>Deals</h2>';
+  sectionDeals.appendChild(showFavoritesBtn); 
   sectionDeals.appendChild(fragment);
 
   //manipulate btn favorit
@@ -407,6 +442,26 @@ const handleFavoriteToggle = (event) => {
     button.setAttribute('data-favorite', 'true');
   }
 };
+
+// takes deals from local storage
+const getAllDealsFromLocalStorage = () => {
+  let allDeals = [];
+  for (let i = 0; i < localStorage.length; i++) {
+    const key = localStorage.key(i);
+    if (key.startsWith('deal-')) {
+      const deal = JSON.parse(localStorage.getItem(key));
+      allDeals.push(deal);
+    }
+  }
+  return allDeals;
+};
+
+// take favorite deals
+const getFavoriteDeals = () => {
+  const allDeals = getAllDealsFromLocalStorage();
+  return allDeals.filter(deal => localStorage.getItem(`favorite-${deal.id}`) === 'true');
+};
+
 
 document.addEventListener('DOMContentLoaded', async () => {
   const deals = await fetchDeals();
