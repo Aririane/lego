@@ -219,7 +219,7 @@ const renderIndicators =(pagination, sales) => {
         return `
         <div class="sale">
           <span>Sale ID: ${sale.uuid}</span>
-          <a href="${sale.link}">${sale.title}</a>
+          <a href="${sale.link}" target="_blank">${sale.title}</a>
           <span>Price: ${sale.price}</span>
         </div>
       `;
