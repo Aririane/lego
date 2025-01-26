@@ -180,7 +180,7 @@ Object.keys(community).forEach(commu => {
  * 🧥
  */
 
-const VINTED = [
+const Sales = [
   {
     link: "https://www.vinted.fr/items/5623924966-lego-walt-disney-tribute-camera-43230",
     price: "48.99",
@@ -465,10 +465,10 @@ const VINTED = [
 console.log("TODO 11\n");
 
 //average
-const averageVinted = VINTED.reduce((sum,item)=>sum+parseFloat(item.price),0)/VINTED.length;
+const averageVinted = Sales.reduce((sum,item)=>sum+parseFloat(item.price),0)/Sales.length;
 
 //sort item du plus petit au plus grand
-const sortedPricesVinted = VINTED.map(item => item.price).sort((a, b) => a - b);
+const sortedPricesVinted = Sales.map(item => item.price).sort((a, b) => a - b);
 
 function calculatePercentile(prices, percentile){
   const index = (percentile/100)*(prices.length-1);
@@ -496,8 +496,8 @@ const today = new Date();
 const threeWeeksAgo = new Date();
 threeWeeksAgo.setDate(today.getDate()-21); //3 semaines = 21jours
 
-const veryOldItems = VINTED.filter((item)=>new Date(item.published)<threeWeeksAgo)
-console.log("List Very old Items : ", VINTED.filter((item)=>new Date(item.published)<threeWeeksAgo));
+const veryOldItems = Sales.filter((item)=>new Date(item.published)<threeWeeksAgo)
+console.log("List Very old Items : ", Sales.filter((item)=>new Date(item.published)<threeWeeksAgo));
 console.log("Very old Items : ",veryOldItems.length >0 ? true:false);
 
 // 🎯 TODO 13: Find a specific item
@@ -505,15 +505,15 @@ console.log("Very old Items : ",veryOldItems.length >0 ? true:false);
 // 2. Log the item
 console.log("TODO 13\n");
 
-console.log(" item with the uuid `f2c5377c-84f9-571d-8712-98902dcbb913` : ", VINTED.filter((item)=>item.uuid == `f2c5377c-84f9-571d-8712-98902dcbb913`));
+console.log(" item with the uuid `f2c5377c-84f9-571d-8712-98902dcbb913` : ", Sales.filter((item)=>item.uuid == `f2c5377c-84f9-571d-8712-98902dcbb913`));
 
 // 🎯 TODO 14: Delete a specific item
 // 1. Delete the item with the uuid `f2c5377c-84f9-571d-8712-98902dcbb913`
 // 2. Log the new list of items
 console.log("TODO 14\n");
-console.log("Vinted lengt: ", VINTED.length);
+console.log("Vinted lengt: ", Sales.length);
 
-const updatedVinted =  VINTED.filter((item)=>item.uuid !== `f2c5377c-84f9-571d-8712-98902dcbb913`)
+const updatedVinted =  Sales.filter((item)=>item.uuid !== `f2c5377c-84f9-571d-8712-98902dcbb913`)
 
 console.log(" item with the uuid `f2c5377c-84f9-571d-8712-98902dcbb913` : ",updatedVinted);
 
@@ -574,7 +574,7 @@ console.log("TODO 16\n");
 
 let higestProfitability=0;
 
-VINTED.forEach(item =>{
+Sales.forEach(item =>{
   const profitability = item.price - deal.price;
   if(profitability > higestProfitability){
     higestProfitability = profitability;
