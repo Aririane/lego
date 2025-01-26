@@ -35,6 +35,7 @@ const selectPage = document.querySelector('#page-select');
 const selectLegoSetIds = document.querySelector('#lego-set-id-select');
 const sectionDeals= document.querySelector('#deals');
 const spanNbDeals = document.querySelector('#nbDeals');
+const spanNbSales = document.querySelector('#nbSales');
 const selectPrice = document.querySelector('#sort-select')
 
 
@@ -120,35 +121,82 @@ const renderPagination = pagination => {
  */
 const renderLegoSetIds = deals => {
   const ids = getIdsFromDeals(deals);
+  const currentSelection = selectLegoSetIds.value;
+
   /*const options = ids.map(id => 
     `<option value="${id}">${id}</option>`
   ).join('');*/
   const options = [
-    `<option value="default" disabled selected>Make a selection</option>`, // Option par défaut
-    ...ids.map((id) => `<option value="${id}">${id}</option>`),
+    `<option value="default" disabled>Make a selection</option>`, // Option par défaut
+    ...ids.map((id) => `<option value="${id}" ${id === currentSelection ? 'selected' : ''}>${id}</option>`),
   ].join('');
 
   selectLegoSetIds.innerHTML = options;
+
+  // S'assurer que l'option sélectionnée reste celle de l'utilisateur
+  if (ids.includes(currentSelection)) {
+    selectLegoSetIds.value = currentSelection;
+  } else {
+    selectLegoSetIds.value = 'default';
+  }
 };
+
 
 /**
  * Render page selector
  * @param  {Object} pagination
+ * @param {Array} sales
  */
-const renderIndicators = pagination => {
+const renderIndicators =(pagination, sales) => {
   const {count} = pagination;
+  const countSales = sales ? sales.length : 0; // if sales is not selectionned
 
   spanNbDeals.innerHTML = count;
+  spanNbSales.innerHTML = countSales;
+};
+
+/**
+ * Render list of sales
+ * @param  {Array} sales
+ */
+const renderSales = (sales) => {
+  const fragment = document.createDocumentFragment();
+  const div = document.createElement('div');
+  const template = sales
+    .map((sale) => {
+      return `
+      <div class="sale">
+        <span>Sale ID: ${sale.uuid}</span>
+        <a href="${sale.link}">${sale.title}</a>
+        <span>Price: ${sale.price}</span>
+      </div>
+    `;
+    })
+    .join('');
+
+  div.innerHTML = template;
+  fragment.appendChild(div);
+
+  // Create or update the sales section
+  let salesSection = document.querySelector('#sales');
+  if (!salesSection) {
+    salesSection = document.createElement('section');
+    salesSection.id = 'sales';
+    document.body.appendChild(salesSection); // Append to the body or a specific container
+  }
+  let salesCount = sales.length;
+  salesSection.innerHTML = `<h2>Vinted Sales - ${salesCount}</h2>`;
+  salesSection.appendChild(fragment);
 };
 
 
-
-const render = (deals, pagination) => {
+const render = (deals, pagination, sales=[]) => {
   renderDeals(deals);
   renderPagination(pagination);
-  renderIndicators(pagination);
+  renderIndicators(pagination, sales);
   renderLegoSetIds(deals);
-  selectPrice.value = "selection";
+  renderSales(sales);
+  //selectPrice.value = "selection";
 };
 
 /**
@@ -259,39 +307,7 @@ const fetchSales = async (id) => {
   }
 };
 
-/**
- * Render list of sales
- * @param  {Array} sales
- */
-const renderSales = (sales) => {
-  const fragment = document.createDocumentFragment();
-  const div = document.createElement('div');
-  const template = sales
-    .map((sale) => {
-      return `
-      <div class="sale">
-        <span>Sale ID: ${sale.uuid}</span>
-        <a href="${sale.link}">${sale.title}</a>
-        <span>Price: ${sale.price}</span>
-      </div>
-    `;
-    })
-    .join('');
 
-  div.innerHTML = template;
-  fragment.appendChild(div);
-
-  // Create or update the sales section
-  let salesSection = document.querySelector('#sales');
-  if (!salesSection) {
-    salesSection = document.createElement('section');
-    salesSection.id = 'sales';
-    document.body.appendChild(salesSection); // Append to the body or a specific container
-  }
-
-  salesSection.innerHTML = '<h2>Vinted Sales</h2>';
-  salesSection.appendChild(fragment);
-};
 
 // Add event listener for LEGO set sales fetching
 document.querySelector('#lego-set-id-select').addEventListener('change', async (event) => {
@@ -301,7 +317,8 @@ document.querySelector('#lego-set-id-select').addEventListener('change', async (
 
   const sales = await fetchSales(selectedSetId);
 
-  renderSales(sales);
+  //renderSales(sales);
+  render(currentDeals, currentPagination, sales);
 });
 
 
