@@ -36,6 +36,10 @@ const selectLegoSetIds = document.querySelector('#lego-set-id-select');
 const sectionDeals= document.querySelector('#deals');
 const spanNbDeals = document.querySelector('#nbDeals');
 const spanNbSales = document.querySelector('#nbSales');
+const spanAverage = document.querySelector('#average');
+const spanP5 = document.querySelector('#p5');
+const spanP25 = document.querySelector('#p25');
+const spanP50 = document.querySelector('#p50');
 const selectPrice = document.querySelector('#sort-select')
 
 
@@ -151,8 +155,47 @@ const renderIndicators =(pagination, sales) => {
   const {count} = pagination;
   const countSales = sales ? sales.length : 0; // if sales is not selectionned
 
+ // Si aucune vente n'est disponible, on affiche "N/A" pour les indicateurs
+ if (sales.length === 0) {
+  spanAverage.innerHTML = 'N/A';
+  spanP5.innerHTML = 'N/A';
+  spanP25.innerHTML = 'N/A';
+  spanP50.innerHTML = 'N/A';
+  return;
+}
+
+// Convertir les prix en nombres et trier
+const prices = sales
+  .map(sale => parseFloat(sale.price))
+  .filter(price => !isNaN(price))  // Filtrer les valeurs non valides
+  .sort((a, b) => a - b);  // Trier les prix de manière croissante
+
+  // Calcul de l'average (moyenne)
+  const average = prices.reduce((sum, price) => sum + price, 0) / prices.length;
+
+  // Fonction pour calculer les percentiles
+  function calculatePercentile(prices, percentile) {
+    const index = (percentile / 100) * (prices.length - 1);
+    const lower = Math.floor(index);
+    const upper = Math.ceil(index);
+    if (lower === upper) {
+      return prices[lower];
+    }
+    return prices[lower] + (index - lower) * (prices[upper] - prices[lower]);
+  }
+
+  // Calcul des percentiles
+  const p5 = calculatePercentile(prices, 5);
+  const p25 = calculatePercentile(prices, 25);
+  const p50 = calculatePercentile(prices, 50);
+
+  // Affichage des résultats arrondis à 2 décimales  
   spanNbDeals.innerHTML = count;
   spanNbSales.innerHTML = countSales;
+  spanAverage.innerHTML = average.toFixed(2);
+  spanP5.innerHTML = p5.toFixed(2);
+  spanP25.innerHTML = p25.toFixed(2);
+  spanP50.innerHTML = p50.toFixed(2);
 };
 
 /**
