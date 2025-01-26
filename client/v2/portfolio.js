@@ -120,9 +120,13 @@ const renderPagination = pagination => {
  */
 const renderLegoSetIds = deals => {
   const ids = getIdsFromDeals(deals);
-  const options = ids.map(id => 
+  /*const options = ids.map(id => 
     `<option value="${id}">${id}</option>`
-  ).join('');
+  ).join('');*/
+  const options = [
+    `<option value="default" disabled selected>Make a selection</option>`, // Option par défaut
+    ...ids.map((id) => `<option value="${id}">${id}</option>`),
+  ].join('');
 
   selectLegoSetIds.innerHTML = options;
 };
@@ -175,6 +179,8 @@ selectPage.addEventListener('change', async (event) => {
   setCurrentDeals(deals);
   render(currentDeals, currentPagination);
 });
+
+
 /**
  * Sort deals by discount
  */
@@ -203,7 +209,7 @@ const sortByHotDeals = () => {
 document.querySelector('#hot-deals').addEventListener('click', sortByHotDeals);
 
 /**
- * Sort deals by price
+ * Sort deals by price & dates
  */
 selectPrice.addEventListener('change', async (event) => {
   if (!event.target.value) return;
@@ -225,6 +231,83 @@ selectPrice.addEventListener('change', async (event) => {
   console.log(event.target.value);
 });
 
+
+/**
+ * Display sales for a current id
+ */
+/**
+ * Fetch sales for a specific LEGO set id
+ * @param  {String}  id - LEGO set ID
+ * @return {Array}
+ */
+const fetchSales = async (id) => {
+  try {
+    const response = await fetch(
+      `https://lego-api-blue.vercel.app/sales?id=${id}`
+    );
+    const body = await response.json();
+
+    if (body.success !== true) {
+      console.error(body);
+      return [];
+    }
+
+    return body.data.result;
+  } catch (error) {
+    console.error(error);
+    return [];
+  }
+};
+
+/**
+ * Render list of sales
+ * @param  {Array} sales
+ */
+const renderSales = (sales) => {
+  const fragment = document.createDocumentFragment();
+  const div = document.createElement('div');
+  const template = sales
+    .map((sale) => {
+      return `
+      <div class="sale">
+        <span>Sale ID: ${sale.uuid}</span>
+        <a href="${sale.link}">${sale.title}</a>
+        <span>Price: ${sale.price}</span>
+      </div>
+    `;
+    })
+    .join('');
+
+  div.innerHTML = template;
+  fragment.appendChild(div);
+
+  // Create or update the sales section
+  let salesSection = document.querySelector('#sales');
+  if (!salesSection) {
+    salesSection = document.createElement('section');
+    salesSection.id = 'sales';
+    document.body.appendChild(salesSection); // Append to the body or a specific container
+  }
+
+  salesSection.innerHTML = '<h2>Vinted Sales</h2>';
+  salesSection.appendChild(fragment);
+};
+
+// Add event listener for LEGO set sales fetching
+document.querySelector('#lego-set-id-select').addEventListener('change', async (event) => {
+  const selectedSetId = event.target.value;
+
+  if (!selectedSetId) return;
+
+  const sales = await fetchSales(selectedSetId);
+
+  renderSales(sales);
+});
+
+
+/**
+ * 
+ */
 
 document.addEventListener('DOMContentLoaded', async () => {
   const deals = await fetchDeals();
