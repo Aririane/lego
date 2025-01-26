@@ -89,11 +89,18 @@ const renderDeals = deals => {
   const div = document.createElement('div');
   const template = deals
     .map(deal => {
+      // verif id the deal is a favorite one
+      const isFavorite = localStorage.getItem(`favorite-${deal.id}`) === 'true';
+
       return `
       <div class="deal" id=${deal.uuid}>
         <span>${deal.id}</span>
         <a href="${deal.link}" target="_blank">${deal.title}</a>
-        <span>${deal.price}</span>
+        <span>${deal.price}€ </span>
+        <!-- Add Favorite -->
+        <button class="favorite-btn" data-id="${deal.id}" data-favorite="${isFavorite}">
+          ${isFavorite ? 'Remove from favorites' : 'Add to favorite'}
+        </button>
       </div>
     `;
     })
@@ -103,6 +110,11 @@ const renderDeals = deals => {
   fragment.appendChild(div);
   sectionDeals.innerHTML = '<h2>Deals</h2>';
   sectionDeals.appendChild(fragment);
+
+  //manipulate btn favorit
+  document.querySelectorAll('.favorite-btn').forEach(button => {
+    button.addEventListener('click', handleFavoriteToggle);
+  });
 };
 
 /**
@@ -376,8 +388,25 @@ document.querySelector('#lego-set-id-select').addEventListener('change', async (
 
 
 /**
- * 
+ * Toggle the favorite status of a deal
+ * @param {Event} event
  */
+const handleFavoriteToggle = (event) => {
+  const button = event.target;
+  const dealId = button.getAttribute('data-id');
+  const isFavorite = button.getAttribute('data-favorite') === 'true';
+
+  // Add/remove deal from favorite (local storage)
+  if (isFavorite) {
+    localStorage.setItem(`favorite-${dealId}`, 'false');
+    button.textContent = 'Add to favorites';
+    button.setAttribute('data-favorite', 'false');
+  } else {
+    localStorage.setItem(`favorite-${dealId}`, 'true');
+    button.textContent = 'Remove from favorites';
+    button.setAttribute('data-favorite', 'true');
+  }
+};
 
 document.addEventListener('DOMContentLoaded', async () => {
   const deals = await fetchDeals();
