@@ -88,19 +88,21 @@ const fetchDeals = async (page = 1, size = 6) => {
 const renderDeals = deals => {
   const fragment = document.createDocumentFragment();
   const div = document.createElement('div');
+  // display each deals on a card
+  div.classList.add('deals-container');
 
-  // Création du bouton "Show Favorite Deals"
+  // create "Show Favorite Deals" button
   const showFavoritesBtn = document.createElement('button');
   showFavoritesBtn.textContent = showFavoritesOnly ? 'Show All Deals' : 'Show Favorite Deals';
   showFavoritesBtn.id = 'show-favorites-btn';
 
-  // Lier l'événement au bouton
+  // link event and btn
   showFavoritesBtn.addEventListener('click', () => {
     showFavoritesOnly = !showFavoritesOnly; // Basculer l'état
     renderDeals(deals); // Redessiner les deals en fonction de l'état
   });
 
-  // Affichage des deals, filtrer les favoris si nécessaire
+  // filter les favoris si nécessaire
   const dealsToDisplay = showFavoritesOnly 
     ? deals.filter(deal => localStorage.getItem(`favorite-${deal.id}`) === 'true') // Récupérer uniquement les deals favoris
     : deals;
@@ -108,7 +110,7 @@ const renderDeals = deals => {
   const template = dealsToDisplay
     .map(deal => {
       const isFavorite = localStorage.getItem(`favorite-${deal.id}`) === 'true';
-      return `
+      /*return `
         <div class="deal" id="${deal.uuid}">
           <span>${deal.id}</span>
           <a href="${deal.link}" target="_blank">${deal.title}</a>
@@ -118,7 +120,46 @@ const renderDeals = deals => {
             ${isFavorite ? 'Remove from favorites' : 'Add to favorite'}
           </button>
         </div>
-      `;
+      `;*/
+      return `
+      <div class="deal-card">
+        <div class="deal-header">
+          <span class="deal-id">ID: ${deal.id}</span>
+          <button class="favorite-btn" data-id="${deal.id}" data-favorite="${isFavorite}">
+              ${isFavorite ? '❤️' : '🤍'}
+          </button>
+        </div>
+        <img src="${deal.photo}" alt="${deal.title}" class="deal-image">
+        <div class="deal-price-discount">
+          <span class="deal-price">💰 ${deal.price}€</span>
+          <span class="deal-discount">⬇️ -${deal.discount}%</span>
+        </div>
+        <div class="deal-temp-comments">
+          <span class="deal-temperature">🔥 ${deal.temperature}°</span>
+          <span class="deal-comments">💬 ${deal.comments} comments</span>
+        </div>
+        <a href="${deal.link}" target="_blank" class="view-deal-btn">Go to the offer</a>
+      </div>
+    `;
+    /*  return `
+        <div class="deal-card">
+          <img src="${deal.photo}" alt="${deal.title}" class="deal-image">
+          <div class="deal-info">
+            <h3>${deal.title}</h3>
+            <p><strong>Id:</strong> ${deal.id}</p>
+            <p><strong>Temperature:</strong> 🔥 ${deal.temperature}</p>
+            <p><strong>Prix:</strong> 💰 ${deal.price}€</p>
+            <p><strong>Discount:</strong> ⬇️ ${deal.discount}%</p>
+            <p><strong>Comments:</strong> 💬 ${deal.comments}</p>
+          </div>
+          <div class="deal-actions">
+            <a href="${deal.link}" target="_blank" class="view-deal-btn">Voir l'offre</a>
+            <button class="favorite-btn" data-id="${deal.id}" data-favorite="${isFavorite}">
+              ${isFavorite ? '❤️ Retirer des favoris' : '🤍 Ajouter aux favoris'}
+            </button>
+          </div>
+        </div>
+      `;*/
     })
     .join('');
   /*const template = deals
@@ -146,7 +187,7 @@ const renderDeals = deals => {
   sectionDeals.appendChild(showFavoritesBtn); 
   sectionDeals.appendChild(fragment);
 
-  //manipulate btn favorit
+  //manipulate btn favorite
   document.querySelectorAll('.favorite-btn').forEach(button => {
     button.addEventListener('click', handleFavoriteToggle);
   });
@@ -202,6 +243,9 @@ const renderLegoSetIds = deals => {
 const renderIndicators =(pagination, sales) => {
   const {count} = pagination;
   const countSales = sales ? sales.length : 0; // if sales is not selectionned
+  
+  spanNbDeals.innerHTML = count;
+  spanNbSales.innerHTML = countSales;
 
   //  if sales is not selectionned
   if (sales.length === 0) {
@@ -234,8 +278,6 @@ const renderIndicators =(pagination, sales) => {
   const p50 = calculatePercentile(prices, 50);
 
   // print result 2 decimal
-  spanNbDeals.innerHTML = count;
-  spanNbSales.innerHTML = countSales;
   spanAverage.innerHTML = average.toFixed(2);
   spanP5.innerHTML = p5.toFixed(2);
   spanP25.innerHTML = p25.toFixed(2);
@@ -288,7 +330,7 @@ const renderIndicators =(pagination, sales) => {
     salesSection.appendChild(fragment);
 };
 
-
+/*
 const render = (deals, pagination, sales=[]) => {
   renderDeals(deals);
   renderPagination(pagination);
@@ -296,6 +338,17 @@ const render = (deals, pagination, sales=[]) => {
   renderLegoSetIds(deals);
   renderSales(sales);
   //selectPrice.value = "selection";
+};*/
+
+const renderDealsAndPagination = (deals, pagination) => {
+  renderDeals(deals);
+  renderPagination(pagination);
+  renderLegoSetIds(deals);
+};
+
+const renderIndicatorsAndSales = (pagination, sales=[]) => {
+  renderIndicators(pagination, sales);
+  renderSales(sales);
 };
 
 /**
@@ -303,13 +356,21 @@ const render = (deals, pagination, sales=[]) => {
  */
 
 /**
- * Select the number of deals to display
+ * Select the number of deals to display -> maj logic
  */
 selectShow.addEventListener('change', async (event) => {
   const deals = await fetchDeals(currentPagination.currentPage, parseInt(event.target.value));
 
+  //maj deal pagi
   setCurrentDeals(deals);
-  render(currentDeals, currentPagination);
+  //render(currentDeals, currentPagination);
+  renderDealsAndPagination(currentDeals, currentPagination);
+
+  // maj if needed indicator and sales 
+  const sales = await fetchSales(selectLegoSetIds.value);
+  renderIndicatorsAndSales(currentPagination, sales);
+
+
 });
 
 /**
@@ -324,7 +385,13 @@ selectPage.addEventListener('change', async (event) => {
   // recuperer ce qu'on à cliquer
 
   setCurrentDeals(deals);
-  render(currentDeals, currentPagination);
+  //render(currentDeals, currentPagination);
+
+  renderDealsAndPagination(currentDeals, currentPagination);
+
+  // Maj if needed pagination & sales
+  const sales = await fetchSales(selectLegoSetIds.value);
+  renderIndicatorsAndSales(currentPagination, sales);
 });
 
 
@@ -332,8 +399,9 @@ selectPage.addEventListener('change', async (event) => {
  * Sort deals by discount
  */
 const sortByBestDiscount = () => {
-  currentDeals.sort((a, b) => b.discount - a.discount); // Suppose que les deals ont une propriété 'discount'
-  render(currentDeals, currentPagination);
+  currentDeals.sort((a, b) => b.discount - a.discount); 
+  //render(currentDeals, currentPagination);
+  renderDealsAndPagination(currentDeals, currentPagination);
 };
 document.querySelector('#best-discount').addEventListener('click', sortByBestDiscount);
 
@@ -341,8 +409,9 @@ document.querySelector('#best-discount').addEventListener('click', sortByBestDis
  * Sort deals by most commented
  */
 const sortByMostCommented = () => {
-  currentDeals.sort((a, b) => b.comments - a.comments); // Suppose que les deals ont une propriété 'comments'
-  render(currentDeals, currentPagination);
+  currentDeals.sort((a, b) => b.comments - a.comments); 
+  //render(currentDeals, currentPagination);
+  renderDealsAndPagination(currentDeals, currentPagination);
 };
 document.querySelector('#most-commented').addEventListener('click', sortByMostCommented);
 
@@ -350,8 +419,9 @@ document.querySelector('#most-commented').addEventListener('click', sortByMostCo
  * Sort deals by hot deals
  */
 const sortByHotDeals = () => {
-  currentDeals.sort((a, b) => b.temperature - a.temperature); // Suppose que les deals ont une propriété 'popularity'
-  render(currentDeals, currentPagination);
+  currentDeals.sort((a, b) => b.temperature - a.temperature); 
+  //render(currentDeals, currentPagination);
+  renderDealsAndPagination(currentDeals, currentPagination);
 };
 document.querySelector('#hot-deals').addEventListener('click', sortByHotDeals);
 
@@ -373,7 +443,8 @@ selectPrice.addEventListener('change', async (event) => {
   if(event.target.value == "date-asc"){
     currentDeals.sort((a, b) => b.published - a.published); // Suppose que les deals ont une propriété 'popularity'
   }
-  render(currentDeals, currentPagination);
+  //render(currentDeals, currentPagination);
+  renderDealsAndPagination(currentDeals, currentPagination);
   selectPrice.value = currentSort;
   console.log(event.target.value);
 });
@@ -418,7 +489,9 @@ document.querySelector('#lego-set-id-select').addEventListener('change', async (
   
   console.log(Object.keys(sales[0]));
   //renderSales(sales);
-  render(currentDeals, currentPagination, sales);
+  //render(currentDeals, currentPagination, sales);
+  renderDealsAndPagination(currentDeals, currentPagination);
+  renderIndicatorsAndSales(currentPagination, sales);
 });
 
 
@@ -434,11 +507,11 @@ const handleFavoriteToggle = (event) => {
   // Add/remove deal from favorite (local storage)
   if (isFavorite) {
     localStorage.setItem(`favorite-${dealId}`, 'false');
-    button.textContent = 'Add to favorites';
+    button.textContent = '🤍';
     button.setAttribute('data-favorite', 'false');
   } else {
     localStorage.setItem(`favorite-${dealId}`, 'true');
-    button.textContent = 'Remove from favorites';
+    button.textContent =  '❤️' ;
     button.setAttribute('data-favorite', 'true');
   }
 };
@@ -462,11 +535,21 @@ const getFavoriteDeals = () => {
   return allDeals.filter(deal => localStorage.getItem(`favorite-${deal.id}`) === 'true');
 };
 
+document.querySelector('#lego-set-id-select').addEventListener('change', async (event) => {
+  const selectedSetId = event.target.value;
+  if (!selectedSetId) return;
+
+  const sales = await fetchSales(selectedSetId);
+
+  // Mettre à jour uniquement les indicateurs et ventes
+  renderIndicatorsAndSales(currentPagination, sales);
+});
+
 
 document.addEventListener('DOMContentLoaded', async () => {
   const deals = await fetchDeals();
 
   setCurrentDeals(deals);
-  render(currentDeals, currentPagination);
-
+  //render(currentDeals, currentPagination);
+  renderDealsAndPagination(currentDeals, currentPagination);
 });

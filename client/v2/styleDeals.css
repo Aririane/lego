@@ -1,0 +1,120 @@
+/*.deal-card {
+    display: flex;
+    flex-direction: column;
+    width: 250px;
+    border: 2px solid #ddd;
+    border-radius: 10px;
+    padding: 15px;
+    margin: 10px;
+    background: #fff;
+    box-shadow: 3px 3px 10px rgba(0, 0, 0, 0.1);
+    text-align: center;
+    position: relative;
+    justify-content: space-between; /* Répartit les éléments uniformément */
+ /* }*/
+ .deal-card {
+    display: flex;
+    flex-direction: column;
+    width: 250px;
+    border: 2px solid #ddd;
+    border-radius: 10px;
+    padding: 15px;
+    margin: 10px;
+    background: #fff;
+    box-shadow: 3px 3px 10px rgba(0, 0, 0, 0.1);
+    text-align: center;
+    position: relative;
+    justify-content: space-between; /* Répartit uniformément les éléments */
+}
+
+  
+  .deal-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    position: absolute;
+    top: 10px;
+    left: 10px;
+    right: 10px;
+  }
+  
+  .deal-id {
+    font-weight: bold;
+    font-size: 14px;
+    color: #555;
+    position: absolute;
+    left: 0;
+    margin-top:15px;
+  }
+  
+  .favorite-btn {
+    background: none;
+    border: none;
+    font-size: 1.5em;
+    cursor: pointer;
+    position: absolute;
+    right: 0;
+    margin-top:15px;
+  }
+  
+  .deal-image {
+    width: 100%;
+    height: 180px; /* Fixer une hauteur pour normaliser l'affichage */
+    object-fit: contain; /* Ajuste l'image sans déformation */
+    border-radius: 5px;
+    margin-top: 20px; /* Laisser de la place pour le header */
+  }
+  
+  .deal-info {
+    display: flex;
+    /*flex-direction: column;
+    gap: 5px;
+    margin-top: auto; /* Pousse la section info vers le bas */
+    /*padding-bottom: 10px; /* Laisse un peu d'espace avant le bouton */
+  }
+  
+  .deal-price-discount {
+    display: flex;
+    justify-content: center;
+    gap: 10px;
+    font-size: 16px;
+    font-weight: bold;
+  }
+  
+  .deal-temp-comments {
+    display: flex;
+    justify-content: center;
+    gap: 10px;
+    font-weight: bold;
+  }
+  
+  .view-deal-btn {
+    display: inline-block;
+    margin-top: 10px;
+    padding: 8px;
+    background: #007BFF;
+    color: white;
+    text-decoration: none;
+    border-radius: 5px;
+    font-weight: bold;
+  }
+  
+  .view-deal-btn:hover {
+    background: #0056b3;
+  }
+
+  
+  /*pour que mes deals s'affichent les uns à coté des autres*/ 
+  .deals-container {
+    display: flex;
+    flex-wrap: wrap; /* Permet le retour à la ligne */
+    gap: 15px; /* Espacement entre les deals */
+    justify-content: center; /* Centre les deals */
+  }
+
+  /*filtre quand on passe sur une carte*/
+  .deal-card:hover {
+    background: rgba(0, 123, 255, 0.1); /* Filtre bleu léger */
+    transition: background 0.3s ease-in-out;
+}
+  
