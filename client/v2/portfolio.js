@@ -187,6 +187,22 @@ const renderDeals = deals => {
   sectionDeals.appendChild(showFavoritesBtn); 
   sectionDeals.appendChild(fragment);
 
+  //show sales by click on deals 
+  document.querySelectorAll('.deal-card').forEach(card => {
+    card.addEventListener('click', async (event) => {
+      const selectedSetId = card.querySelector('.deal-id')?.textContent.replace('ID: ', '').trim();
+      console.log('Selected Deal ID:', selectedSetId);
+      
+      if (!selectedSetId) return; // Vérifie que l'ID est bien récupéré
+  
+      // Fetch des ventes associées
+      const sales = await fetchSales(selectedSetId);
+      
+      // Affichage des indicateurs et ventes
+      renderIndicatorsAndSales(currentPagination, sales);
+    });
+  });
+
   //manipulate btn favorite
   document.querySelectorAll('.favorite-btn').forEach(button => {
     button.addEventListener('click', handleFavoriteToggle);
@@ -359,7 +375,9 @@ const renderIndicatorsAndSales = (pagination, sales=[]) => {
  * Select the number of deals to display -> maj logic
  */
 selectShow.addEventListener('change', async (event) => {
-  const deals = await fetchDeals(currentPagination.currentPage, parseInt(event.target.value));
+  //const deals = await fetchDeals(currentPagination.currentPage, parseInt(event.target.value));
+  //go to page 1 when we change the nb of deals by page 
+  const deals = await fetchDeals(1, parseInt(event.target.value));
 
   //maj deal pagi
   setCurrentDeals(deals);

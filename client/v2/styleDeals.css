@@ -114,7 +114,26 @@
 
   /*filtre quand on passe sur une carte*/
   .deal-card:hover {
-    background: rgba(0, 123, 255, 0.1); /* Filtre bleu léger */
+    background: rgba(0, 123, 255, 0.1); /* blue filter on the deals selection */
     transition: background 0.3s ease-in-out;
-}
+  }
+
+  #content {
+    display: flex;
+    gap: 20px; /* section btw 2 cards */
+    width: 100%;
+  }
+  
+  #deals {
+    flex: 3; /* deals take 3/4 of the wide */
+  }
+  
+  #sales {
+    flex: 1; /* sales take 1/4 of the wode */
+    overflow-y: auto; /* scroll  */
+    max-height: 80vh; /* section max */
+    border-left: 2px solid #ddd; /* separation line */
+    padding-left: 10px;
+  }
+  
   
