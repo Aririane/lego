@@ -6,7 +6,7 @@
     <title>🧱 Lego | Predictability of a lego set deal</title>
   </head>
   <body>
-    <h1>Lego</h1>
+    <h1>Bricks&Deals</h1>
     <section id="options">
       <div id="show">
         <label for="show-select">Show :</label>
@@ -37,15 +37,15 @@
         </select>
       </div>
     </section>
-    <section id="lego">
+    <!-- <section id="lego">
       <h2>Lego sets</h2>
       <div>
         <label>Lego set id:</label>
-        <select id="lego-set-id-select"></select> 
-      </div>
-    </section>
+        <select id="lego-set-id-select"></select>  
+      </div> 
+    </section> -->
     <section id="indicators">
-      <h2>Indicators</h2>
+      <!-- <h2>Indicators</h2>
       <div>
         <span>Number of deals</span>
         <span id="nbDeals">0</span>
@@ -73,11 +73,39 @@
       <div>
         <span>Lifetime value</span>
         <span id ="lifetime">0 days</span>
-      </div>
+      </div> -->
     </section>
     <div id="content">
       <section id="deals"></section>
-      <section id="sales"></section>
+      <section id="sales">
+        <h2 id="salesTitle">Vinted Sales</h2> 
+        <!-- Select id-->
+        <label>Lego set id:</label>
+        <select id="lego-set-id-select"></select>
+        <!-- Stat -->
+        <div id="sales-stats">
+          <h2>Indicators</h2>
+          <div class="stats-row">
+              <span>Number of sales: <span id="nbSales">0</span></span>
+              <span>Number of deals: <span id="nbDeals">0</span></span>
+          </div>
+          <div class="stats-row">
+              <span>Average : <strong><span id="average">0</span>€</span>
+              <span>P50 : <strong><span id="p50">0</span>€</span>
+          </div>
+          <div class="stats-row">
+              <span>P5 : <strong><span id="p5">0</span>€</span>
+              <span>P25 : <strong><span id="p25">0</span>€</span>
+          </div>
+          <div class="stats-row centered">
+              <span>Lifetime : <strong><span id="lifetime">0</span> days</span>
+          </div>
+      </div>
+        
+        <!-- Display sales-->
+        <div id="sales-list"></div>
+      </section>
+
     </div>
     <script type="text/javascript" charset="UTF-8" src="utils.js"></script>
     <script type="text/javascript" charset="UTF-8" src="portfolio.js"></script>

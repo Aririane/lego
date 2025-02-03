@@ -192,11 +192,17 @@ const renderDeals = deals => {
     card.addEventListener('click', async (event) => {
       const selectedSetId = card.querySelector('.deal-id')?.textContent.replace('ID: ', '').trim();
       console.log('Selected Deal ID:', selectedSetId);
-      
+
       if (!selectedSetId) return; // Vérifie que l'ID est bien récupéré
   
       // Fetch des ventes associées
       const sales = await fetchSales(selectedSetId);
+
+      //Put id on lego set id selector
+      const selectElement = document.getElementById('lego-set-id-select');
+      if (selectElement) {
+          selectElement.value = selectedSetId; // Sélectionner l'option correspondante
+      }
       
       // Affichage des indicateurs et ventes
       renderIndicatorsAndSales(currentPagination, sales);
@@ -308,42 +314,38 @@ const renderIndicators =(pagination, sales) => {
 
   const averageLifetime = lifetimeValues.reduce((sum, lifetime) => sum + lifetime, 0) / lifetimeValues.length;
 
-  spanLifeTime.innerHTML = averageLifetime.toFixed(2)+" days"; 
+  spanLifeTime.innerHTML = averageLifetime.toFixed(2); 
 
 };
 
-  /**
-   * Render list of sales
-   * @param  {Array} sales
-   */
-  const renderSales = (sales) => {
-    const fragment = document.createDocumentFragment();
-    const div = document.createElement('div');
-    const template = sales
-      .map((sale) => {
-        return `
-        <div class="sale">
-          <span>Sale ID: ${sale.uuid}</span>
+/**
+* Render list of sales
+* @param  {Array} sales
+*/
+const renderSales = (sales) => {
+  const salesTitle = document.getElementById("salesTitle");
+  const salesList = document.getElementById("sales-list");
+
+  // Mise à jour du titre avec le nombre de ventes
+  const salesCount = sales.length;
+  salesTitle.textContent = `Vinted Sales - ${salesCount}`;
+
+  // Nettoyage de la liste avant d'ajouter les nouvelles ventes
+  salesList.innerHTML = "";
+
+  // Création des éléments de vente
+  sales.forEach((sale) => {
+      const saleDiv = document.createElement("div");
+      saleDiv.classList.add("sale");
+
+      saleDiv.innerHTML = `
+          <span>⭐</span>
           <a href="${sale.link}" target="_blank">${sale.title}</a>
-          <span>Price: ${sale.price}</span>
-        </div>
+          <span>${sale.price}€</span>
       `;
-      })
-      .join('');
 
-    div.innerHTML = template;
-    fragment.appendChild(div);
-
-    // Create or update the sales section
-    let salesSection = document.querySelector('#sales');
-    if (!salesSection) {
-      salesSection = document.createElement('section');
-      salesSection.id = 'sales';
-      document.body.appendChild(salesSection); // Append to the body or a specific container
-    }
-    let salesCount = sales.length;
-    salesSection.innerHTML = `<h2>Vinted Sales - ${salesCount}</h2>`;
-    salesSection.appendChild(fragment);
+      salesList.appendChild(saleDiv);
+  });
 };
 
 /*

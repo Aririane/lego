@@ -135,5 +135,22 @@
     border-left: 2px solid #ddd; /* separation line */
     padding-left: 10px;
   }
+
+  #sales-stats {
+    margin: 15px 0;
+    padding: 10px;
+    background: #f4f4f4;
+    border-radius: 8px;
+  }
+  .stats-row {
+    display: flex;
+    justify-content: space-between;
+    padding: 5px 10px;
+  }
+
+  .centered {
+    justify-content: center;
+    font-weight: bold;
+  }
   
   
