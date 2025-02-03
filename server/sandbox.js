@@ -3,7 +3,7 @@ const avenuedelabrique = require('./websites/avenuedelabrique');
 
 async function sandbox (website = 'https://www.avenuedelabrique.com/nouveautes-lego') {
   try {
-    console.log(`🕵️‍♀️  browsing ${website} website`);
+    console.log(`browsing ${website} website`);
 
     const deals = await avenuedelabrique.scrape(website);
 
