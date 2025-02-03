@@ -23,9 +23,14 @@ const parse = data => {
           .text()
       ));
 
+      const imgRef =  'https://www.avenuedelabrique.com/img/'+ $(element)
+      .find('span.prodl-img img')
+      .attr('data-src');  // Récupère l'attribut src de l'image
+
       return {
         discount,
         price,
+        imgRef,
         'title': $(element).attr('title'),
       };
     })
