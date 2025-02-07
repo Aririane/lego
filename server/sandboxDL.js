@@ -3,7 +3,7 @@ const dealabs = require('./websites/dealabs');
 
 async function sandbox (website = 'https://www.dealabs.com/groupe/lego') {
   try {
-    console.log(`🕵️‍♀️  browsing ${website} website`);
+    console.log(`browsing ${website} website`);
 
     const deals = await dealabs.scrape(website);
 
