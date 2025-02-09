@@ -481,7 +481,9 @@ selectPrice.addEventListener('change', async (event) => {
 const fetchSales = async (id) => {
   try {
     const response = await fetch(
-      `https://lego-api-blue.vercel.app/sales?id=${id}`
+      `
+      
+      
     );
     const body = await response.json();
 

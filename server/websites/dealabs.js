@@ -58,9 +58,6 @@ const parse = (data) => {
       title,
       id,
       community,
-      
-      
-      
     };
   }).get(); // Retourner les résultats sous forme de tableau
 };

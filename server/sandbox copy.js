@@ -35,7 +35,7 @@ if (!isUrl) {
   } else if (input.includes("vinted")) {
     scraper = websites.vinted;
   } else {
-    console.warn("⚠️ Avertissement : Aucun scraper spécifique trouvé, utilisation du scraper avenuedelabrique par défaut.");
+    console.warn("Avertissement : Aucun scraper spécifique trouvé, utilisation du scraper avenuedelabrique par défaut.");
     scraper = websites.avenuedelabrique;
   }
 }
