@@ -15,7 +15,7 @@ const parse = (data) => {
       .find('a.cept-tt.thread-link.linkPlain.thread-title--list.js-thread-title')
       .attr('title');
 
-    // Récupérer l'attribut JSON "data-vue2" qui contient les données du deal
+    // Récupérer l'attribut JSON qui contient tt les données du deal
     const vue2Data = $(element).find('div.js-vue2').attr('data-vue2');
     
     let id = null, comments = null, temperature = null, price = null, timestamp=null,

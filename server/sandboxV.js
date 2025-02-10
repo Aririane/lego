@@ -2,7 +2,7 @@
 const vinted = require('./websites/vinted'); // Assurez-vous que le chemin est correct
 
 // Fonction principale qui effectue le scraping
-async function sandbox(website = 'https://www.vinted.fr/api/v2/catalog/items?page=1&per_page=96&time=1739021958&search_text=42182&catalog_ids=&size_ids=&brand_ids=&status_ids=&color_ids=&material_ids=') {
+async function sandbox(website = 'https://www.vinted.fr/api/v2/catalog/items?page=1&per_page=96&time=1739191153&search_text=42182&catalog_ids=&size_ids=&brand_ids=&status_ids=&color_ids=&material_ids=') {
   try {
     console.log(`browsing ${website} website`);
 
