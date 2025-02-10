@@ -5,9 +5,9 @@ const vinted = require('./websites/vinted'); // Assurez-vous que le chemin est c
 async function sandbox(website = 'https://www.vinted.fr/api/v2/catalog/items?page=1&per_page=96&time=1739191153&search_text=42182&catalog_ids=&size_ids=&brand_ids=&status_ids=&color_ids=&material_ids=') {
   try {
     console.log(`browsing ${website} website`);
-
+    const id = 42182;
     // Récupération des deals via la fonction scrape du module vinted
-    const deals = await vinted.scrape(website);
+    const deals = await vinted.scrape(website, id);
 
     // Affichage des résultats
     console.log(deals);

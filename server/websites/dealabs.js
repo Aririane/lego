@@ -1,3 +1,4 @@
+const fs = require('fs'); // Pour ecrire dans une json file 
 const fetch = require('node-fetch');
 const cheerio = require('cheerio');
 
@@ -80,9 +81,18 @@ module.exports.scrape = async (url) => {
     if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
 
     const body = await response.text();
-    return parse(body);
+    const deals = parse(body); // Définition correcte de deals ici
+
+    if (deals.length === 0) {
+      console.log('Aucun deal trouvé.');
+    } else {
+      console.log('My Deals :');
+      console.log(deals);
+      // Écriture des données dans un fichier JSON
+      fs.writeFileSync('deals.json', JSON.stringify(deals, null, 2), 'utf-8');
+      console.log('Les deals ont été enregistrés dans deals.json');
+    }
   } catch (error) {
     console.error(`Erreur lors du scraping ${url}:`, error.message);
-    return null;
   }
 };
