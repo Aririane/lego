@@ -480,11 +480,7 @@ selectPrice.addEventListener('change', async (event) => {
  */
 const fetchSales = async (id) => {
   try {
-    const response = await fetch(
-      `
-      
-      
-    );
+    const response = await fetch(`https://lego-api-blue.vercel.app/sales?id=${id}`);
     const body = await response.json();
 
     if (body.success !== true) {
@@ -563,7 +559,7 @@ document.querySelector('#lego-set-id-select').addEventListener('change', async (
 
   const sales = await fetchSales(selectedSetId);
 
-  // Mettre à jour uniquement les indicateurs et ventes
+  // only render page and sales
   renderIndicatorsAndSales(currentPagination, sales);
 });
 

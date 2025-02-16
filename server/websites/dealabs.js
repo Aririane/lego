@@ -11,20 +11,21 @@ const parse = (data) => {
   const $ = cheerio.load(data);
   
   return $('div.js-threadList article').map((_, element) => {
-    // Extraire le titre
+    // take title from the first html page
     const title = $(element)
       .find('a.cept-tt.thread-link.linkPlain.thread-title--list.js-thread-title')
       .attr('title');
 
-    // Récupérer l'attribut JSON qui contient tt les données du deal
+    // Take json attribute who contains all deal attributes
     const vue2Data = $(element).find('div.js-vue2').attr('data-vue2');
     
+    // all attributes that we want to take
     let idDeals = null, id = null, comments = null, temperature = null, price = null, timestamp=null,
         link = null, discount = null, image = null, retail = null, community = null;
 
     if (vue2Data) {
       try {
-        const parsedData = JSON.parse(vue2Data); // Convertir JSON en objet
+        const parsedData = JSON.parse(vue2Data); // convert JSON in object
         const thread = parsedData?.props?.thread || {};
 
         idDeals = thread.threadId || null;
@@ -35,16 +36,17 @@ const parse = (data) => {
         retail = thread.nextBestPrice ||null;
         price = thread.price || null;
         timestamp = thread.publishedAt || null;
-        community = 'dealabs';
-        // construire le discount 
+        community = 'dealabs'; // community are always dealabs
+
+        // calculate discount 
         discount = Math.round((retail-price)/retail*100);
 
-        // id lego 
+        // id lego -> take it from  title
         const legoMatch = title ? title.match(/\b\d{5,6}\b/) : null;
         id = legoMatch ? legoMatch[0] : null;
 
 
-        // Construire l'URL complète de l'image
+        // Construct picture url
         if (thread.mainImage) {
           image = `https://static-pepper.dealabs.com/threads/raw/${thread.mainImage.slotId}/${thread.mainImage.name}/re/300x300/qt/60/${thread.mainImage.name}.${thread.mainImage.ext}`;
         }
@@ -67,13 +69,13 @@ const parse = (data) => {
       community,
       idDeals,
     };
-  }).get(); // Retourner les résultats sous forme de tableau
+  }).get(); // Return all information in a tab
 };
 
 /**
- * Scrape une page donnée
- * @param {String} url - URL à scraper
- * @returns {Promise<Array|null>} Deals extraits
+ * Scrape data page
+ * @param {String} url - URL to scrap
+ * @returns {Promise<Array|null>} Deals extracts
  */
 module.exports.scrape = async (url) => {
   try {
@@ -88,20 +90,20 @@ module.exports.scrape = async (url) => {
     if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
 
     const body = await response.text();
-    const deals = parse(body); // Définition correcte de deals ici
+    const deals = parse(body); // convert deal in a good format
 
     if (deals.length === 0) {
-      console.log('Aucun deal trouvé.');
+      console.log('No deal found.');
     } else {
       console.log('My Deals :');
       console.log(deals);
-      // Écriture des données dans un fichier JSON
-      fs.writeFileSync('deals.json', JSON.stringify(deals, null, 2), 'utf-8');
-      console.log('Les deals ont été enregistrés dans deals.json');
+      // Write all deals in a Json files
+      fs.writeFileSync('dealsDL.json', JSON.stringify(deals, null, 2), 'utf-8');
+      console.log('All deals have been charged in dealsDL.json');
     }
     return deals;
   } catch (error) {
-    console.error(`Erreur lors du scraping ${url}:`, error.message);
+    console.error(`Error scraping ${url}:`, error.message);
     return null;
   }
 };

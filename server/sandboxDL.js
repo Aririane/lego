@@ -1,4 +1,5 @@
 /* eslint-disable no-console, no-process-exit */
+/* execute if you only wants to take deals from dealabs*/
 const dealabs = require('./websites/dealabs');
 
 async function sandbox (website = 'https://www.dealabs.com/groupe/lego') {
@@ -7,7 +8,7 @@ async function sandbox (website = 'https://www.dealabs.com/groupe/lego') {
 
     const deals = await dealabs.scrape(website);
 
-    //console.log(deals); // fait direct dans le fichier dealabs
+    //console.log(deals); // display in dealabs.js file 
     console.log('done');
     process.exit(0);
   } catch (e) {
