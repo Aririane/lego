@@ -25,7 +25,7 @@ async function sandbox(website = 'https://www.dealabs.com/groupe/lego') {
       process.on('close', (code) => {
         console.log(`Processus Vinted pour ID ${id} terminé avec le code ${code}`);
       });
-    });*/
+    });
 
     async function launchScrapingSequentially(ids) {
       for (const id of ids) {
@@ -46,7 +46,7 @@ async function sandbox(website = 'https://www.dealabs.com/groupe/lego') {
     
 
     console.log('done');
-    process.exit(0);
+    process.exit(0);*/
   } catch (e) {
     console.error(e);
     process.exit(1);
