@@ -25,30 +25,35 @@ async function sandbox(website = 'https://www.dealabs.com/groupe/lego') {
       process.on('close', (code) => {
         console.log(`Processus Vinted pour ID ${id} terminé avec le code ${code}`);
       });
-    });
+    });*/
 
+    // Fonction pour exécuter sandboxv.js séquentiellement
     async function launchScrapingSequentially(ids) {
       for (const id of ids) {
         console.log(`Lancement du scraping Vinted pour l'ID: ${id}`);
-        await new Promise((resolve) => {
+        
+        await new Promise((resolve, reject) => {
           const process = spawn('node', ['sandboxv.js', id], { stdio: 'inherit' });
-    
+
+          process.on('error', (err) => {
+            console.error(`Erreur lors du lancement de sandboxv.js pour ${id}:`, err);
+            reject(err);
+          });
+
           process.on('close', (code) => {
             console.log(`Processus Vinted pour ID ${id} terminé avec le code ${code}`);
-            setTimeout(resolve, 2000); // Pause de 2 secondes entre chaque scraping
+            setTimeout(resolve, 2000); // Pause de 2 secondes avant de passer au suivant
           });
         });
       }
       console.log('Tous les scrapers Vinted ont été exécutés.');
+      process.exit(0);
     }
-    
-    launchScrapingSequentially(legoIDs);
-    
 
-    console.log('done');
-    process.exit(0);*/
+    await launchScrapingSequentially(legoIDs);
+
   } catch (e) {
-    console.error(e);
+    console.error('Erreur générale:', e);
     process.exit(1);
   }
 }
