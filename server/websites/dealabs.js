@@ -19,7 +19,7 @@ const parse = (data) => {
     // Récupérer l'attribut JSON qui contient tt les données du deal
     const vue2Data = $(element).find('div.js-vue2').attr('data-vue2');
     
-    let id = null, comments = null, temperature = null, price = null, timestamp=null,
+    let idDeals = null, id = null, comments = null, temperature = null, price = null, timestamp=null,
         link = null, discount = null, image = null, retail = null, community = null;
 
     if (vue2Data) {
@@ -27,7 +27,7 @@ const parse = (data) => {
         const parsedData = JSON.parse(vue2Data); // Convertir JSON en objet
         const thread = parsedData?.props?.thread || {};
 
-        id = thread.threadId || null;
+        idDeals = thread.threadId || null;
         comments = thread.commentCount || 0;
         temperature = thread.temperature || null;
         link = thread.shareableLink || null;
@@ -38,6 +38,12 @@ const parse = (data) => {
         community = 'dealabs';
         // construire le discount 
         discount = Math.round((retail-price)/retail*100);
+
+        // id lego 
+        const legoMatch = title ? title.match(/\b\d{5,6}\b/) : null;
+        id = legoMatch ? legoMatch[0] : null;
+
+
         // Construire l'URL complète de l'image
         if (thread.mainImage) {
           image = `https://static-pepper.dealabs.com/threads/raw/${thread.mainImage.slotId}/${thread.mainImage.name}/re/300x300/qt/60/${thread.mainImage.name}.${thread.mainImage.ext}`;
@@ -59,6 +65,7 @@ const parse = (data) => {
       title,
       id,
       community,
+      idDeals,
     };
   }).get(); // Retourner les résultats sous forme de tableau
 };
@@ -92,7 +99,9 @@ module.exports.scrape = async (url) => {
       fs.writeFileSync('deals.json', JSON.stringify(deals, null, 2), 'utf-8');
       console.log('Les deals ont été enregistrés dans deals.json');
     }
+    return deals;
   } catch (error) {
     console.error(`Erreur lors du scraping ${url}:`, error.message);
+    return null;
   }
 };

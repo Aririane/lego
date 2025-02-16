@@ -7,7 +7,7 @@ async function sandbox (website = 'https://www.dealabs.com/groupe/lego') {
 
     const deals = await dealabs.scrape(website);
 
-    console.log(deals);
+    //console.log(deals); // fait direct dans le fichier dealabs
     console.log('done');
     process.exit(0);
   } catch (e) {
