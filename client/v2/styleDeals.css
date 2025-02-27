@@ -1,156 +1,179 @@
-/*.deal-card {
-    display: flex;
-    flex-direction: column;
-    width: 250px;
-    border: 2px solid #ddd;
-    border-radius: 10px;
-    padding: 15px;
-    margin: 10px;
-    background: #fff;
-    box-shadow: 3px 3px 10px rgba(0, 0, 0, 0.1);
-    text-align: center;
-    position: relative;
-    justify-content: space-between; /* Répartit les éléments uniformément */
- /* }*/
- .deal-card {
-    display: flex;
-    flex-direction: column;
-    width: 250px;
-    border: 2px solid #ddd;
-    border-radius: 10px;
-    padding: 15px;
-    margin: 10px;
-    background: #fff;
-    box-shadow: 3px 3px 10px rgba(0, 0, 0, 0.1);
-    text-align: center;
-    position: relative;
-    justify-content: space-between; /* Répartit uniformément les éléments */
+/* Style global : Assurer que la page occupe toute la hauteur de la fenêtre */
+html, body {
+  height: 100%;
+  margin: 0;
+  display: flex;
+  flex-direction: column; /* Organise le contenu en colonne : header, content, footer */
 }
 
-  
-  .deal-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    position: absolute;
-    top: 10px;
-    left: 10px;
-    right: 10px;
-  }
-  
-  .deal-id {
-    font-weight: bold;
-    font-size: 14px;
-    color: #555;
-    position: absolute;
-    left: 0;
-    margin-top:15px;
-  }
-  
-  .favorite-btn {
-    background: none;
-    border: none;
-    font-size: 1.5em;
-    cursor: pointer;
-    position: absolute;
-    right: 0;
-    margin-top:15px;
-  }
-  
-  .deal-image {
-    width: 100%;
-    height: 180px; /* Fixer une hauteur pour normaliser l'affichage */
-    object-fit: contain; /* Ajuste l'image sans déformation */
-    border-radius: 5px;
-    margin-top: 20px; /* Laisser de la place pour le header */
-  }
-  
-  .deal-info {
-    display: flex;
-    /*flex-direction: column;
-    gap: 5px;
-    margin-top: auto; /* Pousse la section info vers le bas */
-    /*padding-bottom: 10px; /* Laisse un peu d'espace avant le bouton */
-  }
-  
-  .deal-price-discount {
-    display: flex;
-    justify-content: center;
-    gap: 10px;
-    font-size: 16px;
-    font-weight: bold;
-  }
-  
-  .deal-temp-comments {
-    display: flex;
-    justify-content: center;
-    gap: 10px;
-    font-weight: bold;
-  }
-  
-  .view-deal-btn {
-    display: inline-block;
-    margin-top: 10px;
-    padding: 8px;
-    background: #007BFF;
-    color: white;
-    text-decoration: none;
-    border-radius: 5px;
-    font-weight: bold;
-  }
-  
-  .view-deal-btn:hover {
-    background: #0056b3;
-  }
+/* Style du header (fixe en haut) */
+header {
+  background-color: #0073e6;
+  color: white;
+  text-align: center;
+  padding: 5px 0;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  flex-shrink: 0; /* Empêche le header de rétrécir */
+}
 
-  
-  /*pour que mes deals s'affichent les uns à coté des autres*/ 
-  .deals-container {
-    display: flex;
-    flex-wrap: wrap; /* Permet le retour à la ligne */
-    gap: 15px; /* Espacement entre les deals */
-    justify-content: center; /* Centre les deals */
-  }
+/* Conteneur principal (en bas de page, pour les cards et sales) */
+#content {
+  display: flex;
+  flex: 1; /* Cela occupe tout l'espace restant entre le header et le footer */
+  gap: 20px; /* Espacement entre les 2 sections */
+  overflow: hidden; /* Empêche un débordement horizontal */
+}
 
-  /*filtre quand on passe sur une carte*/
-  .deal-card:hover {
-    background: rgba(0, 123, 255, 0.1); /* blue filter on the deals selection */
-    transition: background 0.3s ease-in-out;
-  }
+/* Section des deals (à gauche) */
+#deals {
+  flex: 3; /* Prend 3/4 de la largeur */
+  max-height: calc(100vh - 140px); /* Prend tout l'espace disponible entre le header et le footer */
+  padding: 0 20px 20px 20px; /* Espace autour de la section */
+  display: flex;
+  flex-direction: column; /* Organise le contenu verticalement */
+  gap: 20px; /* Espacement entre les différentes parties */
+  overflow-y: auto; /* Permet le défilement vertical uniquement pour cette section */
+}
 
-  #content {
-    display: flex;
-    gap: 20px; /* section btw 2 cards */
-    width: 100%;
-  }
-  
-  #deals {
-    flex: 3; /* deals take 3/4 of the wide */
-  }
-  
-  #sales {
-    flex: 1; /* sales take 1/4 of the wode */
-    overflow-y: auto; /* scroll  */
-    max-height: 80vh; /* section max */
-    border-left: 2px solid #ddd; /* separation line */
-    padding-left: 10px;
-  }
+/* Conteneur pour le titre et le bouton "Show Favorites" */
+.deals-header {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+}
 
-  #sales-stats {
-    margin: 15px 0;
-    padding: 10px;
-    background: #f4f4f4;
-    border-radius: 8px;
-  }
-  .stats-row {
-    display: flex;
-    justify-content: space-between;
-    padding: 5px 10px;
-  }
+.deals-header h2 {
+  font-size: 32px;
+  margin-bottom: 10px;
+}
 
-  .centered {
-    justify-content: center;
-    font-weight: bold;
-  }
+.show-favorites-btn {
+  background-color: #0073e6;
+  color: white;
+  border: none;
+  padding: 8px 20px;  /* Un peu plus de padding horizontal pour le rendre plus proche du titre */
+  border-radius: 5px;
+  font-size: 14px;  /* Taille réduite du texte */
+  cursor: pointer;
+  width: auto;  /* Taille ajustée à son contenu */
+  margin-top: 10px;
+}
+
+.show-favorites-btn:hover {
+  background-color: #24313d;
+}
+
+.favorite-btn {
+  background: none;
+  border: none;
   
-  
+
+  cursor: pointer;
+  position: absolute;
+  right: 0;
+  margin-top:15px;
+}
+
+/* Section des cartes (pour les afficher côte à côte) */
+.deals-container {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); /* Création d'une grille responsive */
+  gap: 50px; /* Espacement entre les cartes */
+  width: 100%;
+}
+
+.deal-card {
+  display: flex;
+  flex-direction: column;
+  width: 90%; /* Les cartes prennent toute la largeur de la section deals */
+  border: 2px solid #ddd;
+  border-radius: 10px;
+  padding: 20px;
+  margin: 0;
+  background: #fff;
+  box-shadow: 3px 3px 10px rgba(0, 0, 0, 0.1);
+  text-align: center;
+  justify-content: flex-start;
+  position: relative;
+}
+
+/* Fixer le header de chaque carte */
+.deal-header {
+  position: sticky;
+  top: 0;
+  background-color: #fff;
+  z-index: 1; /* Pour qu'il soit au-dessus des cartes */
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 10px 0;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1); /* Ombre pour délimiter la partie fixe */
+}
+
+/* Style pour l'image de chaque carte */
+.deal-image {
+  width: 100%;
+  height: 180px;
+  object-fit: contain;
+  border-radius: 5px;
+  margin-top: 20px;
+}
+
+/* Section info de la carte */
+.deal-info {
+  margin-top: auto; /* Pousse les infos et le bouton vers le bas de la carte */
+}
+
+.view-deal-btn {
+  display: inline-block;
+  margin-top: 10px;
+  padding: 8px;
+  background: #007BFF;
+  color: white;
+  text-decoration: none;
+  border-radius: 5px;
+  font-weight: bold;
+  text-align: center;
+}
+
+.view-deal-btn:hover {
+  background: #0056b3;
+}
+
+/* Section des sales (à droite) */
+#sales {
+  flex: 1; /* Prend 1/4 de la largeur */
+  overflow-y: auto; /* Permet le défilement vertical uniquement pour cette section */
+  max-height: calc(100vh - 140px); /* Même hauteur que la section des deals */
+  padding-left: 10px;
+  border-left: 2px solid #ddd; /* Séparation entre deals et sales */
+}
+
+/* Section stats pour les sales */
+#sales-stats {
+  margin: 15px 0;
+  padding: 10px;
+  background: #f4f4f4;
+  border-radius: 8px;
+}
+
+.stats-row {
+  display: flex;
+  justify-content: space-between;
+  padding: 5px 10px;
+}
+
+.centered {
+  justify-content: center;
+  font-weight: bold;
+}
+
+/* Style pour le footer (fixe en bas) */
+footer {
+  background-color: #333;
+  color: white;
+  text-align: center;
+  padding: 10px 0;
+  flex-shrink: 0; /* Empêche le footer de rétrécir */
+}
