@@ -32,16 +32,33 @@ header {
   display: flex;
   flex-direction: column; /* Organise le contenu verticalement */
   gap: 20px; /* Espacement entre les différentes parties */
-  overflow-y: auto; /* Permet le défilement vertical uniquement pour cette section */
+  /*overflow-y: auto; /* Permet le défilement vertical uniquement pour cette section */
+}
+
+#deals-cards{
+  max-height: 80vh; /* Limit height to 80% of viewport height */
+  overflow-y: scroll; /* Enable scrolling for the cards */
+  display: grid;
+  /*grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); /* Responsive grid layout */
+  gap: 15px;
 }
 
 /* Conteneur pour le titre et le bouton "Show Favorites" */
-.deals-header {
+/*.deals-header {
   display: flex;
   flex-direction: column;
   align-items: center;
   text-align: center;
+}*/
+.deals-header {
+  position: sticky;
+  top: 0;
+  background: white; /* S'assurer qu'il ne devient pas transparent */
+  z-index: 10; /* Priorité sur le reste */
+  padding: 10px 0;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
 }
+
 
 .deals-header h2 {
   font-size: 32px;
@@ -67,12 +84,9 @@ header {
 .favorite-btn {
   background: none;
   border: none;
-  
-
   cursor: pointer;
   position: absolute;
   right: 0;
-  margin-top:15px;
 }
 
 /* Section des cartes (pour les afficher côte à côte) */
@@ -86,7 +100,7 @@ header {
 .deal-card {
   display: flex;
   flex-direction: column;
-  width: 90%; /* Les cartes prennent toute la largeur de la section deals */
+  width: 80%; /* Les cartes prennent toute la largeur de la section deals */
   border: 2px solid #ddd;
   border-radius: 10px;
   padding: 20px;
@@ -97,6 +111,7 @@ header {
   justify-content: flex-start;
   position: relative;
 }
+
 
 /* Fixer le header de chaque carte */
 .deal-header {
@@ -144,10 +159,12 @@ header {
 /* Section des sales (à droite) */
 #sales {
   flex: 1; /* Prend 1/4 de la largeur */
-  overflow-y: auto; /* Permet le défilement vertical uniquement pour cette section */
-  max-height: calc(100vh - 140px); /* Même hauteur que la section des deals */
   padding-left: 10px;
+  padding-bottom: 20px; /* Crée un espace sous les sales avant le footer */
   border-left: 2px solid #ddd; /* Séparation entre deals et sales */
+  margin-bottom: 20px; /* Ajoute de l'espace sous les sales avant le footer */
+  /*overflow-y: auto; /* Permet le défilement vertical uniquement pour cette section */
+  overflow: hidden;
 }
 
 /* Section stats pour les sales */
@@ -157,7 +174,14 @@ header {
   background: #f4f4f4;
   border-radius: 8px;
 }
-
+/* Section sales-list qui défile en Y */
+#sales-list {
+  flex: 1; /* Prend tout l'espace restant dans la section */
+  overflow-y: scroll; /* Permet le défilement vertical uniquement pour cette partie */
+  padding: 10px;
+  height: 45%; 
+  margin-bottom: 20px; /* Crée un espacement supplémentaire sous la liste */
+}
 .stats-row {
   display: flex;
   justify-content: space-between;
@@ -174,6 +198,7 @@ footer {
   background-color: #333;
   color: white;
   text-align: center;
-  padding: 10px 0;
+  font-size: 12px; 
+  padding: 2px 0;
   flex-shrink: 0; /* Empêche le footer de rétrécir */
 }

@@ -88,39 +88,34 @@ const fetchDeals = async (page = 1, size = 6) => {
 const renderDeals = deals => {
   const fragment = document.createDocumentFragment();
   const div = document.createElement('div');
-  // display each deals on a card
   div.classList.add('deals-container');
 
-  // create "Show Favorite Deals" button
+  // section title
+  const dealsTitle = document.createElement('h2');
+  dealsTitle.id = 'DealsTitle';
+  dealsTitle.textContent = 'Deals Available';  
+
+
+  // Créer le bouton "Show Favorite Deals"
   const showFavoritesBtn = document.createElement('button');
   showFavoritesBtn.textContent = showFavoritesOnly ? 'Show All Deals' : 'Show Favorite Deals';
   showFavoritesBtn.id = 'show-favorites-btn';
 
-  // link event and btn
+  // Lier l'événement au bouton
   showFavoritesBtn.addEventListener('click', () => {
-    showFavoritesOnly = !showFavoritesOnly; // Basculer l'état
+    showFavoritesOnly = !showFavoritesOnly;
     renderDeals(deals); // Redessiner les deals en fonction de l'état
   });
 
-  // filter les favoris si nécessaire
-  const dealsToDisplay = showFavoritesOnly 
-    ? deals.filter(deal => localStorage.getItem(`favorite-${deal.id}`) === 'true') // Récupérer uniquement les deals favoris
+  // Filtrer les favoris si nécessaire
+  const dealsToDisplay = showFavoritesOnly
+    ? deals.filter(deal => localStorage.getItem(`favorite-${deal.id}`) === 'true')
     : deals;
 
+  // Créer les cartes de deals
   const template = dealsToDisplay
     .map(deal => {
       const isFavorite = localStorage.getItem(`favorite-${deal.id}`) === 'true';
-      /*return `
-        <div class="deal" id="${deal.uuid}">
-          <span>${deal.id}</span>
-          <a href="${deal.link}" target="_blank">${deal.title}</a>
-          <span>${deal.price}€ </span>
-          <!-- Add Favorite -->
-          <button class="favorite-btn" data-id="${deal.id}" data-favorite="${isFavorite}">
-            ${isFavorite ? 'Remove from favorites' : 'Add to favorite'}
-          </button>
-        </div>
-      `;*/
       return `
       <div class="deal-card">
         <div class="deal-header">
@@ -141,53 +136,32 @@ const renderDeals = deals => {
         <a href="${deal.link}" target="_blank" class="view-deal-btn">Go to the offer</a>
       </div>
     `;
-    /*  return `
-        <div class="deal-card">
-          <img src="${deal.photo}" alt="${deal.title}" class="deal-image">
-          <div class="deal-info">
-            <h3>${deal.title}</h3>
-            <p><strong>Id:</strong> ${deal.id}</p>
-            <p><strong>Temperature:</strong> 🔥 ${deal.temperature}</p>
-            <p><strong>Prix:</strong> 💰 ${deal.price}€</p>
-            <p><strong>Discount:</strong> ⬇️ ${deal.discount}%</p>
-            <p><strong>Comments:</strong> 💬 ${deal.comments}</p>
-          </div>
-          <div class="deal-actions">
-            <a href="${deal.link}" target="_blank" class="view-deal-btn">Voir l'offre</a>
-            <button class="favorite-btn" data-id="${deal.id}" data-favorite="${isFavorite}">
-              ${isFavorite ? '❤️ Retirer des favoris' : '🤍 Ajouter aux favoris'}
-            </button>
-          </div>
-        </div>
-      `;*/
     })
     .join('');
-  /*const template = deals
-    .map(deal => {
-      // verif id the deal is a favorite one
-      const isFavorite = localStorage.getItem(`favorite-${deal.id}`) === 'true';
-
-      return `
-      <div class="deal" id=${deal.uuid}>
-        <span>${deal.id}</span>
-        <a href="${deal.link}" target="_blank">${deal.title}</a>
-        <span>${deal.price}€ </span>
-        <!-- Add Favorite -->
-        <button class="favorite-btn" data-id="${deal.id}" data-favorite="${isFavorite}">
-          ${isFavorite ? 'Remove from favorites' : 'Add to favorite'}
-        </button>
-      </div>
-    `;
-    })
-    .join('');*/
 
   div.innerHTML = template;
   fragment.appendChild(div);
-  sectionDeals.innerHTML = '<h2>Deals</h2>';
-  sectionDeals.appendChild(showFavoritesBtn); 
-  sectionDeals.appendChild(fragment);
 
-  //show sales by click on deals 
+  // Vérification que les conteneurs existent avant d'ajouter des éléments
+  const dealsButtonsContainer = document.getElementById('deals-buttons');
+  if (dealsButtonsContainer) {
+    dealsButtonsContainer.innerHTML = ''; // Nettoyer les anciens boutons
+    dealsButtonsContainer.appendChild(dealsTitle); 
+    dealsButtonsContainer.appendChild(showFavoritesBtn); // Ajouter le bouton
+  }
+
+  const dealsCardsContainer = document.getElementById('deals-cards');
+  if (dealsCardsContainer) {
+    dealsCardsContainer.innerHTML = ''; // Nettoyer les anciennes cartes de deals
+    dealsCardsContainer.appendChild(fragment); // Ajouter les nouvelles cartes
+  }
+
+  // Réattacher les gestionnaires d'événements après avoir rendu les éléments
+  document.querySelectorAll('.favorite-btn').forEach(button => {
+    button.addEventListener('click', handleFavoriteToggle);
+  });
+
+  // Ajout d'un gestionnaire d'événement pour afficher les informations d'un deal
   document.querySelectorAll('.deal-card').forEach(card => {
     card.addEventListener('click', async (event) => {
       const selectedSetId = card.querySelector('.deal-id')?.textContent.replace('ID: ', '').trim();
@@ -195,25 +169,21 @@ const renderDeals = deals => {
 
       if (!selectedSetId) return; // Vérifie que l'ID est bien récupéré
   
-      // Fetch des ventes associées
+      // Récupérer les ventes associées
       const sales = await fetchSales(selectedSetId);
 
-      //Put id on lego set id selector
+      // Remplir l'ID du set LEGO
       const selectElement = document.getElementById('lego-set-id-select');
       if (selectElement) {
-          selectElement.value = selectedSetId; // Sélectionner l'option correspondante
+        selectElement.value = selectedSetId; // Sélectionner l'option correspondante
       }
       
-      // Affichage des indicateurs et ventes
+      // Afficher les indicateurs et les ventes
       renderIndicatorsAndSales(currentPagination, sales);
     });
   });
-
-  //manipulate btn favorite
-  document.querySelectorAll('.favorite-btn').forEach(button => {
-    button.addEventListener('click', handleFavoriteToggle);
-  });
 };
+
 
 /**
  * Render page selector
