@@ -6,16 +6,71 @@ html, body {
   flex-direction: column; /* Organise le contenu en colonne : header, content, footer */
 }
 
-/* Style du header (fixe en haut) */
+/* Ajout d'une image de fond au header */
 header {
-  background-color: #0073e6;
+  background: linear-gradient(135deg, #005bb5, #690b0b); /* Dégradé bleu */
   color: white;
-  text-align: center;
-  padding: 5px 0;
+  padding: 5px 20px;
   box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-  flex-shrink: 0; /* Empêche le header de rétrécir */
 }
 
+.header-container {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 0 10px;
+}
+
+.head-title {
+  display: flex;
+  align-items: center;
+}
+@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@600&display=swap');
+
+.head-title h1 {
+  font-family: 'Poppins', sans-serif;
+  font-size: 24px;
+  font-weight: 600;
+  margin: 0;
+  padding: 0;
+}
+
+/* Ajout du style pour le logo */
+.header-logo {
+  width: 50px; /* Ajuste selon la taille du logo */
+  height: auto;
+  margin-right: 10px;
+}
+
+.login-button {
+  display: flex;
+  align-items: center;
+  justify-content: center; /* Centrage horizontal */
+  gap: 2px; /* Espace réduit entre l'icône et le texte */
+  background-color: white;
+  color: #0c0d0d;
+  border: 2px  white;
+  padding: 5px 12px; 
+  border-radius: 25px;
+  font-size: 14px;
+  font-weight: bold;
+  height: 40px; 
+  cursor: pointer;
+  transition: 0.3s;
+}
+.login-button:hover {
+  background-color: #d5e2f0;
+  color: rgb(0, 0, 0);
+}
+.login-icon {
+  width: 20px;
+  height: auto;
+  
+  position: relative;
+  top: -2px;
+}
 /* Conteneur principal (en bas de page, pour les cards et sales) */
 #content {
   display: flex;
