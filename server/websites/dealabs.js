@@ -36,6 +36,7 @@ const parse = (data) => {
         retail = thread.nextBestPrice ||null;
         price = thread.price || null;
         timestamp = thread.publishedAt || null;
+        published_time = timestamp ? new Date(timestamp * 1000).toLocaleString('fr-FR') : null
         community = 'dealabs'; // community are always dealabs
 
         // calculate discount 
@@ -64,6 +65,7 @@ const parse = (data) => {
       image,
       comments,
       timestamp,
+      published_time,
       title,
       id,
       community,
