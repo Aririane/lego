@@ -24,7 +24,7 @@ async function sandbox(website = 'https://www.dealabs.com/groupe/lego') {
     console.log('🔎 IDs LEGO extraits:', legoIDs);
 
     // 4️⃣ Insertion des deals dans MongoDB
-    console.log("📦 Insertion des deals dans MongoDB...");
+    console.log(" Insertion des deals dans MongoDB...");
     const insertDeals = await dealsCollection.insertMany(deals);
     console.log(`✅ ${insertDeals.insertedCount} deals insérés`);
 
@@ -32,7 +32,7 @@ async function sandbox(website = 'https://www.dealabs.com/groupe/lego') {
     async function scrapeAndStoreVinted(ids) {
       let allSales = []; // Tableau pour stocker toutes les ventes récupérées
       for (const id of ids) {
-        console.log(`🚀 Scraping des ventes Vinted pour l'ID LEGO: ${id}...`);
+        console.log(` Scraping des ventes Vinted pour l'ID LEGO: ${id}...`);
 
         try {
           // Exécuter le scraper Vinted pour cet ID et s'assurer que l'URL est absolue
