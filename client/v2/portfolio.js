@@ -56,30 +56,72 @@ const setCurrentDeals = ({result, meta}) => {
 };
 
 /**
- * Fetch deals from api
- * @param  {Number}  [page=1] - current page to fetch
- * @param  {Number}  [size=12] - size of the page
- * @return {Object}
+ * Fetch deals from API (fetch all and paginate locally)
+ * @return {Object} { deals: Array, pagination: Object }
  */
-const fetchDeals = async (page = 1, size = 6) => {
+const fetchDeals = async () => {
   try {
-    const response = await fetch(
-      `https://lego-api-blue.vercel.app/deals?page=${page}&size=${size}`
-    );
+    console.log("Fetching all deals...");
+    
+    // Récupère un grand nombre de deals pour gérer la pagination localement
+    const response = await fetch(`https://lego-blond-two.vercel.app/deals/search?limit=40`);
     const body = await response.json();
 
-    if (body.success !== true) {
-      console.error(body);
-      return {currentDeals, currentPagination};
+    if (!body.results || !Array.isArray(body.results)) {
+      console.error("Réponse API invalide :", body);
+      return { deals: [], pagination: { currentPage: 1, pageSize: 6, pageCount: 0} };
     }
 
-    return body.data;
+    console.log(`Deals récupérés : ${body.results.length}`);
+
+    return { 
+      deals: body.results, 
+      pagination: { currentPage: 1, pageSize: 6, pageCount: Math.ceil(body.results.length / 6) } 
+    };
   } catch (error) {
-    console.error(error);
-    return {currentDeals, currentPagination};
+    console.error("Erreur lors de la récupération des deals :", error);
+    return { deals: [], pagination: { currentPage: 1, pageSize: 6, pageCount: 0 } };
   }
 };
 
+/**
+ * Fetch sales for a specific LEGO set id
+ * @param  {String}  id - LEGO set ID
+ * @return {Array}
+ */
+const fetchSales = async (id) => {
+  try {
+    const response = await fetch(`https://lego-blond-two.vercel.app/sales/search?legoSetId=${id}`);
+    const body = await response.json();
+
+    console.log("Réponse API fetchSales :", body); // Debugging
+
+    if (!body.results || !Array.isArray(body.results)) {
+      console.error("Réponse API invalide :", body);
+      return [];
+    }
+
+    return body.results;
+  } catch (error) {
+    console.error("Erreur lors de la récupération des ventes :", error);
+    return [];
+  }
+};
+
+/**
+ * Paginate deals manually
+ */
+const paginateDeals = () => {
+  const start = (currentPagination.currentPage - 1) * currentPagination.pageSize;
+  const end = start + currentPagination.pageSize;
+
+  console.log(`PaginateDeals - Page: ${currentPagination.currentPage}, Start: ${start}, End: ${end}, Total: ${allDeals.length}`);
+
+  currentDeals = allDeals.slice(start, end);
+  currentPagination.pageCount = Math.ceil(allDeals.length / currentPagination.pageSize);
+
+  console.log(`Deals affichés pour cette page: ${currentDeals.length}`);
+};
 
 /**
  * Render list of deals
@@ -177,116 +219,11 @@ const renderDeals = deals => {
       if (selectElement) {
         selectElement.value = selectedSetId; // Sélectionner l'option correspondante
       }
-      
-      // Afficher les indicateurs et les ventes
-      renderIndicatorsAndSales(currentPagination, sales);
+      renderSales(sales);
     });
   });
 };
 
-
-/**
- * Render page selector
- * @param  {Object} pagination
- */
-const renderPagination = pagination => {
-  const {currentPage, pageCount} = pagination;
-  const options = Array.from(
-    {'length': pageCount},
-    (value, index) => `<option value="${index + 1}">${index + 1}</option>`
-  ).join('');
-
-  selectPage.innerHTML = options;
-  selectPage.selectedIndex = currentPage - 1;
-};
-
-/**
- * Render lego set ids selector
- * @param  {Array} lego set ids
- */
-const renderLegoSetIds = deals => {
-  const ids = getIdsFromDeals(deals);
-  const currentSelection = selectLegoSetIds.value;
-
-  /*const options = ids.map(id => 
-    `<option value="${id}">${id}</option>`
-  ).join('');*/
-  const options = [
-    `<option value="default" disabled>Make a selection</option>`, // Option par défaut
-    ...ids.map((id) => `<option value="${id}" ${id === currentSelection ? 'selected' : ''}>${id}</option>`),
-  ].join('');
-
-  selectLegoSetIds.innerHTML = options;
-
-  // S'assurer que l'option sélectionnée reste celle de l'utilisateur
-  if (ids.includes(currentSelection)) {
-    selectLegoSetIds.value = currentSelection;
-  } else {
-    selectLegoSetIds.value = 'default';
-  }
-};
-
-
-/**
- * Render page selector
- * @param  {Object} pagination
- * @param {Array} sales
- */
-const renderIndicators =(pagination, sales) => {
-  const {count} = pagination;
-  const countSales = sales ? sales.length : 0; // if sales is not selectionned
-  
-  spanNbDeals.innerHTML = count;
-  spanNbSales.innerHTML = countSales;
-
-  //  if sales is not selectionned
-  if (sales.length === 0) {
-    spanAverage.innerHTML = 'N/A';
-    spanP5.innerHTML = 'N/A';
-    spanP25.innerHTML = 'N/A';
-    spanP50.innerHTML = 'N/A';
-    return;
-  }
-
-  // Convert price in float and order
-  const prices = sales
-    .map(sale => parseFloat(sale.price))
-    .filter(price => !isNaN(price))  // Filter NaN value
-    .sort((a, b) => a - b);  // Order ( croissant)
-
-  const average = prices.reduce((sum, price) => sum + price, 0) / prices.length;
-
-  function calculatePercentile(prices, percentile) {
-    const index = (percentile / 100) * (prices.length - 1);
-    const lower = Math.floor(index);
-    const upper = Math.ceil(index);
-    if (lower === upper) {
-      return prices[lower];
-    }
-    return prices[lower] + (index - lower) * (prices[upper] - prices[lower]);
-  }
-  const p5 = calculatePercentile(prices, 5);
-  const p25 = calculatePercentile(prices, 25);
-  const p50 = calculatePercentile(prices, 50);
-
-  // print result 2 decimal
-  spanAverage.innerHTML = average.toFixed(2);
-  spanP5.innerHTML = p5.toFixed(2);
-  spanP25.innerHTML = p25.toFixed(2);
-  spanP50.innerHTML = p50.toFixed(2);
-
-  // calculate lifetime
-  const currentDate = new Date();
-  const lifetimeValues = sales.map((sale) => {
-    const publishedDate = new Date(sale.published); // Assumer que 'published' est un timestamp ou une chaîne de date
-    return (currentDate - publishedDate) / (1000 * 60 * 60 * 24); // Calculer en jours
-  });
-
-  const averageLifetime = lifetimeValues.reduce((sum, lifetime) => sum + lifetime, 0) / lifetimeValues.length;
-
-  spanLifeTime.innerHTML = averageLifetime.toFixed(2); 
-
-};
 
 /**
 * Render list of sales
@@ -318,170 +255,91 @@ const renderSales = (sales) => {
   });
 };
 
-/*
-const render = (deals, pagination, sales=[]) => {
-  renderDeals(deals);
-  renderPagination(pagination);
-  renderIndicators(pagination, sales);
-  renderLegoSetIds(deals);
-  renderSales(sales);
-  //selectPrice.value = "selection";
-};*/
-
-const renderDealsAndPagination = (deals, pagination) => {
-  renderDeals(deals);
-  renderPagination(pagination);
-  renderLegoSetIds(deals);
-};
-
-const renderIndicatorsAndSales = (pagination, sales=[]) => {
-  renderIndicators(pagination, sales);
-  renderSales(sales);
+/**
+ * Render pagination selector
+ */
+const renderPagination = () => {
+  selectPage.innerHTML = Array.from(
+    { length: currentPagination.pageCount },
+    (_, index) => `<option value="${index + 1}">${index + 1}</option>`
+  ).join('');
+  selectPage.selectedIndex = currentPagination.currentPage - 1;
 };
 
 /**
- * Declaration of all Listeners
+ * Render number of deals indicator
  */
+const renderIndicators = () => {
+  spanNbDeals.innerHTML = allDeals.length;
+};
 
 /**
- * Select the number of deals to display -> maj logic
+ * Render Lego set IDs selector
  */
-selectShow.addEventListener('change', async (event) => {
-  //const deals = await fetchDeals(currentPagination.currentPage, parseInt(event.target.value));
-  //go to page 1 when we change the nb of deals by page 
-  const deals = await fetchDeals(1, parseInt(event.target.value));
+const renderLegoSetIds = () => {
+  const ids = [...new Set(currentDeals.map(deal => deal.id).filter(id => id))];
 
-  //maj deal pagi
-  setCurrentDeals(deals);
-  //render(currentDeals, currentPagination);
-  renderDealsAndPagination(currentDeals, currentPagination);
+  selectLegoSetIds.innerHTML = `<option value="default">Sélectionner un ID</option>` + 
+    ids.map(id => `<option value="${id}">${id}</option>`).join('');
+};
 
-  // maj if needed indicator and sales 
-  const sales = await fetchSales(selectLegoSetIds.value);
-  renderIndicatorsAndSales(currentPagination, sales);
+/**
+ * Re-render the page
+ */
+const render = () => {
+  paginateDeals();
+  renderDeals(currentDeals);
+  renderPagination();
+  renderIndicators();
+  renderLegoSetIds();
+};
 
+/**
+ * Event Listeners
+ */
+document.addEventListener('DOMContentLoaded', async () => {
+  const { deals, pagination } = await fetchDeals(); // Récupérer toutes les offres au chargement
 
+  allDeals = deals;
+  currentPagination = pagination;
+
+  render();
 });
 
 /**
- * Select Page
+ * Gestion du changement de page
  */
-selectPage.addEventListener('change', async (event) => {
-  const goToPage = parseInt(event.target.value);
-
-  console.log(goToPage);
-  
-  const deals = await fetchDeals(goToPage,parseInt(selectShow.value));
-  // recuperer ce qu'on à cliquer
-
-  setCurrentDeals(deals);
-  //render(currentDeals, currentPagination);
-
-  renderDealsAndPagination(currentDeals, currentPagination);
-
-  // Maj if needed pagination & sales
-  const sales = await fetchSales(selectLegoSetIds.value);
-  renderIndicatorsAndSales(currentPagination, sales);
+selectPage.addEventListener('change', (event) => {
+  currentPagination.currentPage = parseInt(event.target.value);
+  render();
 });
 
-
 /**
- * Sort deals by discount
+ * Gestion du changement de taille de page
  */
-const sortByBestDiscount = () => {
-  currentDeals.sort((a, b) => b.discount - a.discount); 
-  //render(currentDeals, currentPagination);
-  renderDealsAndPagination(currentDeals, currentPagination);
-};
-document.querySelector('#best-discount').addEventListener('click', sortByBestDiscount);
+selectShow.addEventListener('change', (event) => {
+  currentPagination.pageSize = parseInt(event.target.value);
+  currentPagination.currentPage = 1; // Revenir à la première page
 
-/**
- * Sort deals by most commented
- */
-const sortByMostCommented = () => {
-  currentDeals.sort((a, b) => b.comments - a.comments); 
-  //render(currentDeals, currentPagination);
-  renderDealsAndPagination(currentDeals, currentPagination);
-};
-document.querySelector('#most-commented').addEventListener('click', sortByMostCommented);
-
-/**
- * Sort deals by hot deals
- */
-const sortByHotDeals = () => {
-  currentDeals.sort((a, b) => b.temperature - a.temperature); 
-  //render(currentDeals, currentPagination);
-  renderDealsAndPagination(currentDeals, currentPagination);
-};
-document.querySelector('#hot-deals').addEventListener('click', sortByHotDeals);
-
-/**
- * Sort deals by price & dates
- */
-selectPrice.addEventListener('change', async (event) => {
-  if (!event.target.value) return;
-  currentSort = event.target.value;
-  if(event.target.value=="price-desc"){
-    currentDeals.sort((a, b) => b.price - a.price); // Suppose que les deals ont une propriété 'popularity'
-  }
-  if(event.target.value == "price-asc"){
-    currentDeals.sort((a, b) => a.price - b.price); // Suppose que les deals ont une propriété 'popularity'
-  }
-  if(event.target.value=="date-desc"){
-    currentDeals.sort((a, b) => a.published - b.published); // Suppose que les deals ont une propriété 'popularity'
-  }
-  if(event.target.value == "date-asc"){
-    currentDeals.sort((a, b) => b.published - a.published); // Suppose que les deals ont une propriété 'popularity'
-  }
-  //render(currentDeals, currentPagination);
-  renderDealsAndPagination(currentDeals, currentPagination);
-  selectPrice.value = currentSort;
-  console.log(event.target.value);
+  render();
 });
 
-
 /**
- * Display sales for a current id
+ * Bouton pour afficher les sales selon l'id
  */
-/**
- * Fetch sales for a specific LEGO set id
- * @param  {String}  id - LEGO set ID
- * @return {Array}
- */
-const fetchSales = async (id) => {
-  try {
-    const response = await fetch(`https://lego-api-blue.vercel.app/sales?id=${id}`);
-    const body = await response.json();
+selectLegoSetIds.addEventListener('change', async (event) => {
+  const selectedSetId = event.target.value; // Récupère l'ID sélectionné
+  console.log(`Lego Set sélectionné: ${selectedSetId}`);
 
-    if (body.success !== true) {
-      console.error(body);
-      return [];
-    }
+  if (!selectedSetId || selectedSetId === "default") return;
 
-    return body.data.result;
-  } catch (error) {
-    console.error(error);
-    return [];
-  }
-};
-
-
-
-// Add event listener for LEGO set sales fetching
-document.querySelector('#lego-set-id-select').addEventListener('change', async (event) => {
-  const selectedSetId = event.target.value;
-
-  if (!selectedSetId) return;
-
+  // Récupérer les ventes liées à cet ID
   const sales = await fetchSales(selectedSetId);
-  
-  console.log(Object.keys(sales[0]));
-  //renderSales(sales);
-  //render(currentDeals, currentPagination, sales);
-  renderDealsAndPagination(currentDeals, currentPagination);
-  renderIndicatorsAndSales(currentPagination, sales);
-});
 
+  // Afficher les ventes et mettre à jour les indicateurs
+  renderSales(sales);
+  renderIndicators(currentPagination, sales);
+});  
 
 /**
  * Toggle the favorite status of a deal
@@ -503,41 +361,3 @@ const handleFavoriteToggle = (event) => {
     button.setAttribute('data-favorite', 'true');
   }
 };
-
-// takes deals from local storage
-const getAllDealsFromLocalStorage = () => {
-  let allDeals = [];
-  for (let i = 0; i < localStorage.length; i++) {
-    const key = localStorage.key(i);
-    if (key.startsWith('deal-')) {
-      const deal = JSON.parse(localStorage.getItem(key));
-      allDeals.push(deal);
-    }
-  }
-  return allDeals;
-};
-
-// take favorite deals
-const getFavoriteDeals = () => {
-  const allDeals = getAllDealsFromLocalStorage();
-  return allDeals.filter(deal => localStorage.getItem(`favorite-${deal.id}`) === 'true');
-};
-
-document.querySelector('#lego-set-id-select').addEventListener('change', async (event) => {
-  const selectedSetId = event.target.value;
-  if (!selectedSetId) return;
-
-  const sales = await fetchSales(selectedSetId);
-
-  // only render page and sales
-  renderIndicatorsAndSales(currentPagination, sales);
-});
-
-
-document.addEventListener('DOMContentLoaded', async () => {
-  const deals = await fetchDeals();
-
-  setCurrentDeals(deals);
-  //render(currentDeals, currentPagination);
-  renderDealsAndPagination(currentDeals, currentPagination);
-});

@@ -43,6 +43,7 @@ app.get('/deals/search', async (req, res) => {
     try {
 
         const { limit = 40, price, date, filterBy } = req.query;
+       
 
         const query = {};
         const sort = {};
@@ -133,33 +134,37 @@ app.get('/deals/:id', async (req, res) => {
 });
 
 // GET /sales/search - Recherche de ventes spécifiques
+// GET /sales/search - Recherche des ventes par ID, triées par prix croissant
 app.get('/sales/search', async (req, res) => {
     try {
-
         const { limit = 200, legoSetId } = req.query;
 
-        const query = {};
-        const sort = {};
-
-
-        if (legoSetId) {
-            query.id = legoSetId;
-            console.log(`Filtre Lego Set ID = ${legoSetId}`);
+        // Vérifier si un ID est fourni
+        if (!legoSetId) {
+            return res.status(400).json({ error: 'legoSetId est requis' });
         }
 
-        sort.published = -1;
+        const query = { legoSetId: legoSetId }; // Filtre par ID du set LEGO
+        const sort = { price: 1 }; // Tri par prix croissant
 
-        const sales = await db.collection('sales').find(query).sort(sort).limit(parseInt(limit)).toArray();
+        console.log(`🔍 Recherche des ventes pour LegoSetId = ${legoSetId}, trié par prix croissant`);
+
+        // Exécution de la requête MongoDB
+        const sales = await db.collection('sales')
+            .find(query)
+            .sort(sort)
+            .limit(parseInt(limit))
+            .toArray();
 
         if (sales.length === 0) {
-            console.log('Aucun résultat trouvé');
+            console.log('⚠️ Aucun résultat trouvé');
             return res.status(404).json({ error: 'Aucune vente trouvée' });
         }
 
         res.json({ limit: parseInt(limit), total: sales.length, results: sales });
 
     } catch (error) {
-        console.error('Erreur lors de la recherche des ventes:', error);
+        console.error('❌ Erreur lors de la recherche des ventes:', error);
         res.status(500).json({ error: 'Erreur interne du serveur' });
     }
 });
