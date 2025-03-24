@@ -28,24 +28,7 @@ const { connectDB } = require('./database');
 connectDB().then((db) => {
     console.log("✅ API connectée à MongoDB !");
 
-    // Endpoint pour récupérer un deal par son "idDeals"
-    /*app.get('/deals/:idDeals', async (req, res) => {
-        try {
-            const dealId = req.params.idDeals;
-            console.log(`🔍 Recherche du deal avec ID: ${dealId}`);
-
-            const deal = await db.collection('deals').findOne({ idDeals: dealId });
-
-            if (!deal) {
-                return res.status(404).json({ error: "Deal non trouvé" });
-            }
-
-            res.json(deal);
-        } catch (error) {
-            console.error("❌ Erreur lors de la récupération du deal :", error);
-            res.status(500).json({ error: "Erreur serveur" });
-        }
-    });*/
+    
 
     // Recherche dans les deals 
     app.get('/deals/search', async (req, res) => {
@@ -121,7 +104,25 @@ connectDB().then((db) => {
         console.error("❌ Erreur lors de la recherche des sales :", error);
         res.status(500).json({ error: "Erreur serveur" });
     }
-});
+    });
+    // Endpoint pour récupérer un deal par son "idDeals"
+    app.get('/deals/:id', async (req, res) => {
+        try {
+            const dealId = req.params.id;
+            console.log(`🔍 Recherche du deal avec ID: ${dealId}`);
+
+            const deal = await db.collection('deals').findOne({ id: dealId });
+
+            if (!deal) {
+                return res.status(404).json({ error: "Deal non trouvé" });
+            }
+
+            res.json(deal);
+        } catch (error) {
+            console.error("❌ Erreur lors de la récupération du deal :", error);
+            res.status(500).json({ error: "Erreur serveur" });
+        }
+    });
 
   
 
