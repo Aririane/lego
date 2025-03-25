@@ -319,7 +319,7 @@ const renderIndicators = async (legoSetId) => {
   spanP25.innerHTML = `${P25}`;
   spanP50.innerHTML = `${P50}`;
 
-  
+
   // Calcul de lifetime comme vous l'avez déjà fait
   const currentDate = new Date();
   const lifetimeValues = sales
@@ -375,7 +375,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 
   allDeals = deals;
   currentPagination = pagination;
-
+  selectPrice.value = "selection";
   render();
 });
 
@@ -434,3 +434,131 @@ const handleFavoriteToggle = (event) => {
     button.setAttribute('data-favorite', 'true');
   }
 };
+
+/**
+ * gestion des boutons
+ */
+/**
+ * Fonction générique de tri des deals en fonction de différents critères
+ * @param {string} filterBy - Critère pour filtrer les deals (ex: "best-discount", "most-commented", "hot-deals")
+ * @param {string} sortKey - Clé par laquelle trier les deals (ex: "discount", "comments", "temperature")
+ */
+const sortDeals = async (filterBy, sortKey) => {
+  try {
+    console.log(`Fetching all deals for ${filterBy} ...`);
+
+    // Appel API avec le paramètre filterBy
+    const response = await fetch(`https://lego-blond-two.vercel.app/deals/search?filterBy=${filterBy}`);
+    const body = await response.json();
+
+    if (!body.results || !Array.isArray(body.results)) {
+      console.error("Réponse API invalide :", body);
+      return;
+    }
+
+    console.log(`Deals récupérés : ${body.results.length}`);
+
+    // Tri des deals par la clé spécifiée (ordre décroissant)
+    const sortedDeals = body.results.sort((a, b) => b[sortKey] - a[sortKey]);
+
+    // Mettre à jour la variable globale allDeals
+    allDeals = sortedDeals;
+
+    // Mettre à jour la pagination si besoin
+    currentPagination = {
+      currentPage: 1,
+      pageSize: currentPagination.pageSize || 6, // garder la taille actuelle ou 6 par défaut
+      pageCount: Math.ceil(sortedDeals.length / (currentPagination.pageSize || 6))
+    };
+
+    // Réafficher la page avec les nouveaux deals triés
+    render();
+    // reset bouton sort by
+    selectPrice.value = "selection";
+
+  } catch (error) {
+    console.error("Erreur lors de la récupération des deals :", error);
+  }
+};
+
+// Ajout des écouteurs d'événements pour chaque bouton
+document.querySelector('#best-discount').addEventListener('click', () => sortDeals('best-discount', 'discount'));
+document.querySelector('#most-commented').addEventListener('click', () => sortDeals('most-commented', 'comments'));
+document.querySelector('#hot-deals').addEventListener('click', () => sortDeals('hot-deals', 'temperature'));
+
+/**
+ * Fonction générique de tri des deals par prix et dates en fonction de la sélection de l'utilisateur
+ */
+selectPrice.addEventListener('change', async (event) => {
+  if (!event.target.value) return; // Si aucune valeur n'est sélectionnée, on arrête ici.
+  currentSort = event.target.value;
+
+  try {
+    // Chargement des deals depuis l'API selon le tri choisi
+    console.log(`Fetching all deals for sorting by ${event.target.value} ...`);
+    
+    let response;
+    let body;
+    let sortedDeals;
+    
+    // Faire la requête API avec les différents filtres en fonction du tri
+    if (event.target.value === "price-desc" || event.target.value === "price-asc") {
+      // Si tri par prix
+      response = await fetch('https://lego-blond-two.vercel.app/deals/search');
+      body = await response.json();
+
+      if (!body.results || !Array.isArray(body.results)) {
+        console.error("Réponse API invalide :", body);
+        return;
+      }
+
+      // Tri par prix
+      sortedDeals = body.results.sort((a, b) => {
+        if (event.target.value === "price-desc") {
+          return b.price - a.price;  // Tri décroissant par prix
+        } else {
+          return a.price - b.price;  // Tri croissant par prix
+        }
+      });
+
+    } else if (event.target.value === "date-desc" || event.target.value === "date-asc") {
+      // Si tri par date
+      response = await fetch('https://lego-blond-two.vercel.app/deals/search');
+      body = await response.json();
+
+      if (!body.results || !Array.isArray(body.results)) {
+        console.error("Réponse API invalide :", body);
+        return;
+      }
+
+      // Tri par date
+      sortedDeals= body.results.sort((a, b) => {
+        if (event.target.value === "date-desc") {
+          return b.published - a.published;  // Tri décroissant par date
+        } else {
+          return a.published - b.published;  // Tri croissant par date
+        }
+      });
+    }
+
+    // Mettre à jour la variable globale allDeals
+    allDeals = sortedDeals;
+
+    // Mettre à jour la pagination si besoin
+    currentPagination = {
+      currentPage: 1,
+      pageSize: currentPagination.pageSize || 6, // garder la taille actuelle ou 6 par défaut
+      pageCount: Math.ceil(sortedDeals.length / (currentPagination.pageSize || 6))
+    };
+
+    // Réafficher la page avec les nouveaux deals triés
+    render();
+
+  } catch (error) {
+    console.error("Erreur lors de la récupération des deals :", error);
+  }
+
+  // Assurez-vous que la valeur du tri sélectionné est bien rétablie après le rendu
+  selectPrice.value = currentSort;
+  console.log(event.target.value);
+});
