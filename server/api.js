@@ -38,6 +38,74 @@ app.get('/', (req, res) => {
     res.send({ ack: true });
 });
 
+// recup la moyenne
+app.get('/sales/average', async (req, res) => {
+    try {
+        const { legoSetId } = req.query;
+
+        // Vérifie si l'ID est fourni
+        if (!legoSetId) {
+            return res.status(400).json({ error: "legoSetId est requis" });
+        }
+
+        // Calcul de la moyenne et du nombre de ventes
+        const result = await db.collection('sales').aggregate([
+            {
+                $match: { legoSetId: legoSetId } // Filtrer par ID spécifique
+            },
+            {
+                $group: {
+                    _id: null,
+                    averagePrice: { $avg: "$price" }, // Calcul de la moyenne des prix
+                    totalDeals: { $sum: 1 } // Compter le nombre de ventes (deals)
+                }
+            }
+        ]).toArray();
+
+        // Récupération des percentiles P5, P25, P50
+        const percentilesResult = await db.collection('sales').aggregate([
+            { $match: { legoSetId: legoSetId } },
+            { $sort: { price: 1 } }, // Trier par prix croissant
+            {
+                $group: {
+                    _id: null,
+                    prices: { $push: "$price" } // Stocker tous les prix dans un tableau
+                }
+            },
+            {
+                $project: {
+                    p5: { $arrayElemAt: ["$prices", { $floor: { $multiply: [{ $size: "$prices" }, 0.05] } }] }, // P5 (5th percentile)
+                    p25: { $arrayElemAt: ["$prices", { $floor: { $multiply: [{ $size: "$prices" }, 0.25] } }] }, // P25 (25th percentile)
+                    p50: { $arrayElemAt: ["$prices", { $floor: { $multiply: [{ $size: "$prices" }, 0.50] } }] }  // P50 (50th percentile, médiane)
+                }
+            }
+        ]).toArray();
+
+        // Si aucune vente trouvée, retourner des valeurs par défaut
+        const average = result.length > 0 ? result[0].averagePrice : 0;
+        const totalDeals = result.length > 0 ? result[0].totalDeals : 0;
+        const p5 = percentilesResult.length > 0 ? percentilesResult[0].p5 : 0;   // P5 récupéré
+        const p25 = percentilesResult.length > 0 ? percentilesResult[0].p25 : 0; // P25 récupéré
+        const p50 = percentilesResult.length > 0 ? percentilesResult[0].p50 : 0; // P50 récupéré
+
+        res.json({
+            legoSetId,
+            average: Math.round(average * 100) / 100, // Arrondi à 2 décimales
+            totalDeals,
+            P5: p5,
+            P25: p25,
+            P50: p50
+        });
+
+    } catch (error) {
+        console.error("❌ Erreur lors du calcul des statistiques:", error);
+        res.status(500).json({ error: "Erreur interne du serveur" });
+    }
+});
+
+
+
+
 // GET /deals/search - Recherche de deals avec filtres
 app.get('/deals/search', async (req, res) => {
     try {

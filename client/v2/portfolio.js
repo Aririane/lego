@@ -23,6 +23,7 @@ This endpoint accepts the following optional query string parameters:
 
 // current deals on the page
 let currentDeals = [];
+let currentSales = [];
 let currentPagination = {};
 let showFavoritesOnly = false;
 
@@ -96,8 +97,9 @@ const fetchSales = async (id) => {
 
     console.log("Réponse API fetchSales :", body); // Debugging
 
+
     if (!body.results || !Array.isArray(body.results)) {
-      console.error("Réponse API invalide :", body);
+      //console.error("Réponse API invalide :", body);
       return [];
     }
 
@@ -166,7 +168,7 @@ const renderDeals = deals => {
               ${isFavorite ? '❤️' : '🤍'}
           </button>
         </div>
-        <img src="${deal.photo}" alt="${deal.title}" class="deal-image">
+        <img src="${deal.image}" alt="${deal.title}" class="deal-image">
         <div class="deal-price-discount">
           <span class="deal-price">💰 ${deal.price}€</span>
           <span class="deal-discount">⬇️ -${deal.discount}%</span>
@@ -212,14 +214,15 @@ const renderDeals = deals => {
       if (!selectedSetId) return; // Vérifie que l'ID est bien récupéré
   
       // Récupérer les ventes associées
-      const sales = await fetchSales(selectedSetId);
+      currentSales = await fetchSales(selectedSetId);
 
       // Remplir l'ID du set LEGO
       const selectElement = document.getElementById('lego-set-id-select');
       if (selectElement) {
         selectElement.value = selectedSetId; // Sélectionner l'option correspondante
       }
-      renderSales(sales);
+      renderSales();
+      renderIndicators(selectedSetId);
     });
   });
 };
@@ -229,7 +232,8 @@ const renderDeals = deals => {
 * Render list of sales
 * @param  {Array} sales
 */
-const renderSales = (sales) => {
+const renderSales = () => {
+  sales = currentSales;
   const salesTitle = document.getElementById("salesTitle");
   const salesList = document.getElementById("sales-list");
 
@@ -239,6 +243,12 @@ const renderSales = (sales) => {
 
   // Nettoyage de la liste avant d'ajouter les nouvelles ventes
   salesList.innerHTML = "";
+
+  if (salesCount === 0) {
+    // Si aucune vente, ne pas afficher les indicateurs
+    spanLifeTime.innerHTML = "Aucune vente disponible"; // Message alternatif
+    return; // Ne pas continuer
+  }
 
   // Création des éléments de vente
   sales.forEach((sale) => {
@@ -266,11 +276,74 @@ const renderPagination = () => {
   selectPage.selectedIndex = currentPagination.currentPage - 1;
 };
 
+const fetchSalesStats = async (legoSetId) => {
+  try {
+      const response = await fetch(`https://lego-blond-two.vercel.app/sales/average?legoSetId=${legoSetId}`);
+      const data = await response.json();
+      return data;
+  } catch (error) {
+      console.error("Erreur lors de la récupération des statistiques:", error);
+      return { average: 0, totalDeals: 0, P5: 0, P25: 0, P50: 0 };
+  }
+};
+
 /**
  * Render number of deals indicator
  */
-const renderIndicators = () => {
+const renderIndicators = async (legoSetId) => {
+  if (currentSales.length === 0) {
+    // Si aucune vente n'existe, on ne fait pas les calculs d'indicateurs
+    console.log("No sales available, skipping indicator rendering...");
+    spanNbDeals.innerHTML = 0;
+    spanNbSales.innerHTML = 0;
+    spanAverage.innerHTML = '0';
+    spanP5.innerHTML = '0';
+    spanP25.innerHTML = '0';
+    spanP50.innerHTML = '0';
+    spanLifeTime.innerHTML = '0.00';
+    return; // Sortir de la fonction sans faire les calculs
+  }
+
+  // Si on arrive ici, cela signifie que les ventes existent.
+  console.log("Sales available, fetching stats...");
+
   spanNbDeals.innerHTML = allDeals.length;
+  spanNbSales.innerHTML = currentSales.length;
+
+  const { average, totalDeals, P5, P25, P50 } = await fetchSalesStats(legoSetId);
+  console.log("Fetched Stats:", { average, totalDeals, P5, P25, P50 });
+
+  // Mettez à jour les éléments avec les nouvelles valeurs
+  spanAverage.innerHTML = `${average}`;
+  spanP5.innerHTML = `${P5}`;
+  spanP25.innerHTML = `${P25}`;
+  spanP50.innerHTML = `${P50}`;
+
+  
+  // Calcul de lifetime comme vous l'avez déjà fait
+  const currentDate = new Date();
+  const lifetimeValues = sales
+    .filter((sale) => {
+      const publishedDate = new Date(sale.timestamp * 1000);
+      return !isNaN(publishedDate) && publishedDate.getTime() > 0;
+    })
+    .map((sale) => {
+      const publishedDate = new Date(sale.timestamp * 1000);
+      const lifetimeInMilliseconds = currentDate - publishedDate;
+      const lifetimeInDays = lifetimeInMilliseconds / (1000 * 60 * 60 * 24);
+      return lifetimeInDays;
+    });
+
+  const averageLifetime = lifetimeValues.length > 0
+    ? lifetimeValues.reduce((sum, lifetime) => sum + lifetime, 0) / lifetimeValues.length
+    : 0;
+
+  spanLifeTime.innerHTML = averageLifetime.toFixed(2);
+};
+
+
+
+/**
 };
 
 /**
@@ -290,7 +363,7 @@ const render = () => {
   paginateDeals();
   renderDeals(currentDeals);
   renderPagination();
-  renderIndicators();
+  //renderIndicators();
   renderLegoSetIds();
 };
 
@@ -334,11 +407,11 @@ selectLegoSetIds.addEventListener('change', async (event) => {
   if (!selectedSetId || selectedSetId === "default") return;
 
   // Récupérer les ventes liées à cet ID
-  const sales = await fetchSales(selectedSetId);
+  currentSales = await fetchSales(selectedSetId);
 
   // Afficher les ventes et mettre à jour les indicateurs
-  renderSales(sales);
-  renderIndicators(currentPagination, sales);
+  renderSales();
+  renderIndicators(selectedSetId);
 });  
 
 /**
