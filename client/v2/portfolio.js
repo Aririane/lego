@@ -279,6 +279,12 @@ const renderSales = () => {
   // Nettoyage de la liste avant d'ajouter les nouvelles ventes
   salesList.innerHTML = "";
 
+  if (salesCount === 0) {
+    // Afficher un message lorsqu'il n'y a pas de ventes
+    salesList.innerHTML = `<p>No sales available on Vinted for this ID :(</p>`;
+    return;
+  }
+
   // Création des éléments de vente
   sales.forEach((sale) => {
       const saleDiv = document.createElement("div");
@@ -631,6 +637,9 @@ toggleBestDealsBtn.addEventListener('click', async () => {
   } else {
     bestDealsSlider.style.display = "none";
     showingBestDeals = false;
+    
+    
+    bestDealsCount.textContent  = 5;
     toggleBestDealsBtn.textContent = "Best Deals!";
   }
 

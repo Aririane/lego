@@ -23,46 +23,52 @@
     </header>
     <h1>Bricks&Deals</h1>
     <section id="options">
-      <div id="show">
-        <label for="show-select">Show :</label>
-        <select name="show" id="show-select">
-          <option value="6">6</option>
-          <option value="12">12</option>
-          <option value="25">All deals</option>
-        </select>
+      <div id="page-container">
+        <div id="show">
+          <label for="show-select">Show :</label>
+          <select name="show" id="show-select">
+            <option value="6">6</option>
+            <option value="12">12</option>
+            <option value="25">All deals</option>
+          </select>
+        </div>
+        <div id="page">
+          <label for="page-select">Go to page :</label>
+          <select name="page" id="page-select"> </select>
+        </div>
       </div>
-      <div id="page">
-        <label for="page-select">Go to page :</label>
-        <select name="page" id="page-select"> </select>
-      </div>
-      <div id="filters">
-        <label for="order-selection">Order by : </label>
-        <input type="button" id="best-discount" value="By best discount" />
-        <input type="button" id="most-commented" value="By most commented" />
-        <input type="button" id="hot-deals" value="By hot deals" />
-      </div>
-      <div id="sort">
-        <label for="sort-select">Sort by :</label>
-        <select name="sort" id="sort-select">
-          <option value="selection">Make Selection</option>
-          <option value="price-asc">Cheaper</option>
-          <option value="price-desc">Expensive</option>
-          <option value="date-asc">Recently published</option>
-          <option value="date-desc">Anciently published</option>
-        </select>
+      <div id="sort-container">
+        <div id="filters">
+          <label for="order-selection">Order by : </label>
+          <input type="button" id="best-discount" value="By best discount" />
+          <input type="button" id="most-commented" value="By most commented" />
+          <input type="button" id="hot-deals" value="By hot deals" />
+        </div>
+        <div id="sort">
+          <label for="sort-select">Sort by :</label>
+          <select name="sort" id="sort-select">
+            <option value="selection">Make Selection</option>
+            <option value="price-asc">Cheaper</option>
+            <option value="price-desc">Expensive</option>
+            <option value="date-asc">Recently published</option>
+            <option value="date-desc">Anciently published</option>
+          </select>
+        </div>
       </div>
       <div id="best-deals-container">
         <button id="toggle-best-deals">Best Deals !</button>
         <input type="range" id="best-deals-slider" min="1" max="20" value="6" style="display:none;">
-        <span id="best-deals-count">6</span>
-        <span id="description">best deals in yellow</span>
+        <div id="best-deals-info">
+          <span id="best-deals-count">5</span>
+          <span id="description">best deals in yellow</span>
+        </div>
       </div>
     </section>
     <!-- <section id="lego">
       <h2>Lego sets</h2>
       <div>
         <label>Lego set id:</label>
-        <select id="lego-set-id-select"></select>  
+        <select id="lego-set-id-select"></select>  style="display:none;">
       </div> 
     </section> -->
     <section id="indicators">
