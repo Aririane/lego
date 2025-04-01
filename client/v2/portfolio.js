@@ -244,12 +244,6 @@ const renderSales = () => {
   // Nettoyage de la liste avant d'ajouter les nouvelles ventes
   salesList.innerHTML = "";
 
-  if (salesCount === 0) {
-    // Si aucune vente, ne pas afficher les indicateurs
-    spanLifeTime.innerHTML = "Aucune vente disponible"; // Message alternatif
-    return; // Ne pas continuer
-  }
-
   // Création des éléments de vente
   sales.forEach((sale) => {
       const saleDiv = document.createElement("div");
@@ -257,7 +251,7 @@ const renderSales = () => {
 
       saleDiv.innerHTML = `
           <span>⭐</span>
-          <a href="${sale.link}" target="_blank">${sale.title}</a>
+          <a href="${sale.url}" target="_blank">${sale.title}</a>
           <span>${sale.price}€</span>
       `;
 
@@ -562,3 +556,46 @@ selectPrice.addEventListener('change', async (event) => {
   selectPrice.value = currentSort;
   console.log(event.target.value);
 });
+
+/**
+ * Calcul fait une seule fois quand je lance la page sinon très long 
+ */
+let precomputedBestDeals = [];
+
+async function computeBestDeals() {
+    console.log("Calcul des meilleurs deals...");
+    const dealsWithStats = [];
+
+    for (const deal of allDeals) {
+        const sales = await fetchSales(deal.id);
+        if (sales.length === 0) continue;
+
+        const { average, P5, P25, P50 } = await fetchSalesStats(deal.id);
+
+        const currentDate = new Date();
+        const lifetimeValues = sales.map(sale => {
+            const publishedDate = new Date(sale.timestamp * 1000);
+            return (currentDate - publishedDate) / (1000 * 60 * 60 * 24);
+        });
+
+        const avgLifetime = lifetimeValues.length > 0
+            ? lifetimeValues.reduce((sum, lt) => sum + lt, 0) / lifetimeValues.length
+            : 0;
+
+        const dealScore = (deal.discount * 2) + (deal.temperature) - (avgLifetime * 1.5) + (P5 * 0.5) + (P25 * 0.3);
+
+        dealsWithStats.push({
+            ...deal,
+            avgLifetime,
+            averagePrice: average,
+            P5,
+            P25,
+            P50,
+            dealScore
+        });
+    }
+
+    // Trier et stocker les résultats
+    precomputedBestDeals = dealsWithStats.sort((a, b) => b.dealScore - a.dealScore);
+    console.log("Meilleurs deals pré-calculés !");
+}

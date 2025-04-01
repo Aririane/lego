@@ -183,6 +183,64 @@ app.get('/deals/search', async (req, res) => {
     }
 });
 
+// recup les meilleurs deals
+app.get('/deals/best', async (req, res) => {
+    try {
+        const { limit = 20 } = req.query;
+
+        // Récupération de tous les deals
+        const deals = await db.collection('deals').find().toArray();
+
+        if (!deals.length) {
+            return res.status(404).json({ error: 'Aucun deal trouvé' });
+        }
+
+        const scoredDeals = await Promise.all(deals.map(async (deal) => {
+            const sales = await db.collection('sales').find({ legoSetId: deal.id }).toArray();
+
+            if (!sales.length) {
+                return { ...deal, score: 0 }; // Si pas de vente, score = 0
+            }
+
+            // Calcul du Lifetime moyen (temps entre mise en vente et vente)
+            const lifetimeAvg = sales.reduce((sum, sale) => sum + (sale.lifetime || 0), 0) / sales.length;
+
+            // Calcul de pValue/prix moyen
+            const pValueAvg = sales.reduce((sum, sale) => sum + (sale.pvalue / sale.price), 0) / sales.length;
+
+            // Nombre de ventes
+            const totalSales = sales.length;
+
+            // Score de deal basé sur plusieurs critères
+            const lifetimeScore = 1 / (lifetimeAvg + 1); // Plus c'est bas, mieux c'est
+            const pValueScore = pValueAvg; // Plus c'est haut, mieux c'est
+            const discountScore = deal.discount / 100; // Normalisation
+            const temperatureScore = deal.temperature / 100; // Normalisation
+            const salesScore = Math.log(1 + totalSales); // Logarithmique pour lisser
+
+            // Score final avec pondération
+            const finalScore = 
+                (lifetimeScore * 0.3) +
+                (pValueScore * 0.3) +
+                (discountScore * 0.2) +
+                (temperatureScore * 0.1) +
+                (salesScore * 0.1);
+
+            return { ...deal, score: finalScore };
+        }));
+
+        // Trier les deals par score décroissant
+        const bestDeals = scoredDeals.sort((a, b) => b.score - a.score).slice(0, parseInt(limit));
+
+        res.json({ total: bestDeals.length, results: bestDeals });
+
+    } catch (error) {
+        console.error("Erreur lors du calcul des meilleurs deals:", error);
+        res.status(500).json({ error: "Erreur interne du serveur" });
+    }
+});
+
+
 // GET /deals/:id - Obtenir un deal spécifique
 app.get('/deals/:id', async (req, res) => {
     try {
@@ -236,6 +294,7 @@ app.get('/sales/search', async (req, res) => {
         res.status(500).json({ error: 'Erreur interne du serveur' });
     }
 });
+
 
 // Lancer le serveur et connecter à MongoDB
 async function startServer() {

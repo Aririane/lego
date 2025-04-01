@@ -20,6 +20,10 @@
       "dest": "api.js"
     },
     {
+      "src": "/deals/best",
+      "dest": "api.js"
+    },
+    {
       "src": "/sales/average",
       "dest": "api.js"
     },
