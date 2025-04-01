@@ -203,13 +203,13 @@ app.get('/deals/best', async (req, res) => {
             }
 
             // Calcul du Lifetime moyen (temps entre mise en vente et vente)
-            const lifetimeAvg = sales.reduce((sum, sale) => sum + (sale.lifetime || 0), 0) / sales.length;
+            const lifetimeAvg = sales.reduce((sum, sale) => sum + (sale.lifetime || 0), 0) / sales.length|| 0;
 
             // Calcul de pValue/prix moyen
-            const pValueAvg = sales.reduce((sum, sale) => sum + (sale.pvalue / sale.price), 0) / sales.length;
+            const pValueAvg = sales.reduce((sum, sale) => sum + (sale.pvalue / sale.price), 0) / sales.length|| 0;
 
             // Nombre de ventes
-            const totalSales = sales.length;
+            const totalSales = sales.length || 0;
 
             // Score de deal basé sur plusieurs critères
             const lifetimeScore = 1 / (lifetimeAvg + 1); // Plus c'est bas, mieux c'est
@@ -225,6 +225,7 @@ app.get('/deals/best', async (req, res) => {
                 (discountScore * 0.2) +
                 (temperatureScore * 0.1) +
                 (salesScore * 0.1);
+            //console.log('final score'+finalScore);
 
             return { ...deal, score: finalScore };
         }));

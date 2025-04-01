@@ -26,6 +26,7 @@ let currentDeals = [];
 let currentSales = [];
 let currentPagination = {};
 let showFavoritesOnly = false;
+let topDeals = [];
 
 // all deals to have good tri
 let allDeals = [];
@@ -110,6 +111,39 @@ const fetchSales = async (id) => {
   }
 };
 
+// Charger et filtrer les meilleurs deals
+const fetchBestDeals = async () => {
+  try {
+    console.log("Fetching best deals...");
+    
+    const response = await fetch('https://lego-blond-two.vercel.app/deals/best');
+    const body = await response.json();
+
+    if (!body.results || !Array.isArray(body.results)) {
+      console.error("Réponse API invalide :", body);
+      return [];
+    }
+
+
+    return body.results;
+  } catch (error) {
+    console.error("Erreur lors de la récupération des meilleurs deals :", error);
+    return [];
+  }
+};
+
+const StoreBestDeals = async () => {
+  try {
+    const bestDealsDisp = await fetchBestDeals(); // Récupérer tous les deals
+    topDeals = bestDealsDisp.slice(0, 5); // Prendre les 5 meilleurs
+  } catch (error) {
+    console.error("Erreur lors de la récupération des meilleurs deals :", error);
+    topDeals = []; // En cas d'erreur, s'assurer que c'est un tableau vide
+  }
+};
+// Charger les meilleurs deals au début -> pour l'affichage global
+StoreBestDeals();
+
 /**
  * Paginate deals manually
  */
@@ -129,7 +163,7 @@ const paginateDeals = () => {
  * Render list of deals
  * @param  {Array} deals
  */
-const renderDeals = deals => {
+const renderDeals = (deals, isBestDealsMode=false) => {
   const fragment = document.createDocumentFragment();
   const div = document.createElement('div');
   div.classList.add('deals-container');
@@ -137,8 +171,8 @@ const renderDeals = deals => {
   // section title
   const dealsTitle = document.createElement('h2');
   dealsTitle.id = 'DealsTitle';
-  dealsTitle.textContent = 'Deals Available';  
-
+  //dealsTitle.textContent = 'Deals Available';  
+  dealsTitle.textContent = isBestDealsMode ? 'Best Deals' : 'Deals Available';  
 
   // Créer le bouton "Show Favorite Deals"
   const showFavoritesBtn = document.createElement('button');
@@ -148,7 +182,7 @@ const renderDeals = deals => {
   // Lier l'événement au bouton
   showFavoritesBtn.addEventListener('click', () => {
     showFavoritesOnly = !showFavoritesOnly;
-    renderDeals(deals); // Redessiner les deals en fonction de l'état
+    renderDeals(deals,isBestDealsMode); // Redessiner les deals en fonction de l'état
   });
 
   // Filtrer les favoris si nécessaire
@@ -160,8 +194,9 @@ const renderDeals = deals => {
   const template = dealsToDisplay
     .map(deal => {
       const isFavorite = localStorage.getItem(`favorite-${deal.id}`) === 'true';
+      const isBestDealsMode = topDeals.some(topDeal => topDeal.id === deal.id); // Vérifier si ce deal est dans les 5 meilleurs
       return `
-      <div class="deal-card">
+      <div class="deal-card ${isBestDealsMode ? 'best-deal-style' : ''}">
         <div class="deal-header">
           <span class="deal-id">ID: ${deal.id}</span>
           <button class="favorite-btn" data-id="${deal.id}" data-favorite="${isFavorite}">
@@ -269,6 +304,7 @@ const renderPagination = () => {
   ).join('');
   selectPage.selectedIndex = currentPagination.currentPage - 1;
 };
+
 
 const fetchSalesStats = async (legoSetId) => {
   try {
@@ -528,9 +564,9 @@ selectPrice.addEventListener('change', async (event) => {
       // Tri par date
       sortedDeals= body.results.sort((a, b) => {
         if (event.target.value === "date-desc") {
-          return b.published - a.published;  // Tri décroissant par date
+          return b.timestamp- a.timestamp;  // Tri décroissant par date
         } else {
-          return a.published - b.published;  // Tri croissant par date
+          return a.timestamp - b.timestamp;  // Tri croissant par date
         }
       });
     }
@@ -558,44 +594,48 @@ selectPrice.addEventListener('change', async (event) => {
 });
 
 /**
- * Calcul fait une seule fois quand je lance la page sinon très long 
+ * Calcul des best deals 
  */
-let precomputedBestDeals = [];
+// Sélection des éléments
+const toggleBestDealsBtn = document.getElementById('toggle-best-deals');
+const bestDealsSlider = document.getElementById('best-deals-slider');
+const bestDealsCount = document.getElementById('best-deals-count');
 
-async function computeBestDeals() {
-    console.log("Calcul des meilleurs deals...");
-    const dealsWithStats = [];
+let showingBestDeals = false; // État actuel des deals affichés
+let bestDeals = []; // Stocker les meilleurs deals
 
-    for (const deal of allDeals) {
-        const sales = await fetchSales(deal.id);
-        if (sales.length === 0) continue;
 
-        const { average, P5, P25, P50 } = await fetchSalesStats(deal.id);
 
-        const currentDate = new Date();
-        const lifetimeValues = sales.map(sale => {
-            const publishedDate = new Date(sale.timestamp * 1000);
-            return (currentDate - publishedDate) / (1000 * 60 * 60 * 24);
-        });
+// Mettre à jour l'affichage en fonction du nombre de deals sélectionnés
+const updateBestDealsDisplay = () => {
+  const dealsTitle = document.getElementById('DealsTitle');
+  if (showingBestDeals) {
+    const count = parseInt(bestDealsSlider.value, 10);
+    renderDeals(bestDeals.slice(0, count),true);
+    bestDealsCount.textContent = count;
+    if (dealsTitle) dealsTitle.textContent = "Best Deals";
+  }
+  else{
+    render();
+  }
+};
 
-        const avgLifetime = lifetimeValues.length > 0
-            ? lifetimeValues.reduce((sum, lt) => sum + lt, 0) / lifetimeValues.length
-            : 0;
+// Gestion du clic sur le bouton "Best Deals!"
+toggleBestDealsBtn.addEventListener('click', async () => {
+  if (!showingBestDeals) {
+    bestDeals = await fetchBestDeals();
+    bestDealsSlider.style.display = "inline";
+    bestDealsSlider.value = 5;
+    showingBestDeals = true;
+    toggleBestDealsBtn.textContent = "All Deals";
+  } else {
+    bestDealsSlider.style.display = "none";
+    showingBestDeals = false;
+    toggleBestDealsBtn.textContent = "Best Deals!";
+  }
 
-        const dealScore = (deal.discount * 2) + (deal.temperature) - (avgLifetime * 1.5) + (P5 * 0.5) + (P25 * 0.3);
+  updateBestDealsDisplay();
+});
 
-        dealsWithStats.push({
-            ...deal,
-            avgLifetime,
-            averagePrice: average,
-            P5,
-            P25,
-            P50,
-            dealScore
-        });
-    }
-
-    // Trier et stocker les résultats
-    precomputedBestDeals = dealsWithStats.sort((a, b) => b.dealScore - a.dealScore);
-    console.log("Meilleurs deals pré-calculés !");
-}
+// Gestion du slider pour modifier le nombre de deals affichés
+bestDealsSlider.addEventListener('input', updateBestDealsDisplay);
