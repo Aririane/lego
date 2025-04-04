@@ -2,6 +2,8 @@
 /* execute if you only wants to take deals from dealabs*/
 const dealabs = require('./websites/dealabs');
 
+// Step 4 launch dealabs scrapping 
+
 async function sandbox (website = 'https://www.dealabs.com/groupe/lego') {
   try {
     console.log(`Browsing ${website} website`);

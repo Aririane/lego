@@ -2,6 +2,8 @@
 /* Execute this file with the lego id you want to fetch*/
 const vinted = require('./websites/vinted'); 
 
+// STEP 4: launch Vinted scrapping 
+
 async function sandbox(id) {
   try {
 

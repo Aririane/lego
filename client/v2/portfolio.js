@@ -2,23 +2,7 @@
 'use strict';
 
 /**
-Description of the available api
-GET https://lego-api-blue.vercel.app/deals
-
-Search for specific deals
-
-This endpoint accepts the following optional query string parameters:
-
-- `page` - page of deals to return
-- `size` - number of deals to return
-
-GET https://lego-api-blue.vercel.app/sales
-
-Search for current Vinted sales for a given lego set id
-
-This endpoint accepts the following optional query string parameters:
-
-- `id` - lego set id to return
+Portfolio developt with my api
 */
 
 // current deals on the page
@@ -163,7 +147,12 @@ const paginateDeals = () => {
  * Render list of deals
  * @param  {Array} deals
  */
-const renderDeals = (deals, isBestDealsMode=false) => {
+/**
+ * Render list of deals
+ * @param  {Array} deals
+ * @param  {boolean} isBestDealsMode - Indique si on est en mode meilleurs deals
+ */
+const renderDeals = (deals, isBestDealsMode = false) => {
   const fragment = document.createDocumentFragment();
   const div = document.createElement('div');
   div.classList.add('deals-container');
@@ -171,96 +160,95 @@ const renderDeals = (deals, isBestDealsMode=false) => {
   // section title
   const dealsTitle = document.createElement('h2');
   dealsTitle.id = 'DealsTitle';
-  //dealsTitle.textContent = 'Deals Available';  
-  dealsTitle.textContent = isBestDealsMode ? 'Best Deals' : 'Deals Available';  
+  dealsTitle.textContent = isBestDealsMode ? 'Best Deals' : 'Deals Available';
 
-  // Créer le bouton "Show Favorite Deals"
   const showFavoritesBtn = document.createElement('button');
   showFavoritesBtn.textContent = showFavoritesOnly ? 'Show All Deals' : 'Show Favorite Deals';
   showFavoritesBtn.id = 'show-favorites-btn';
 
-  // Lier l'événement au bouton
-  showFavoritesBtn.addEventListener('click', () => {
-    showFavoritesOnly = !showFavoritesOnly;
-    renderDeals(deals,isBestDealsMode); // Redessiner les deals en fonction de l'état
-  });
-
-  // Filtrer les favoris si nécessaire
+  // Handle the filtering of favorites
   const dealsToDisplay = showFavoritesOnly
     ? deals.filter(deal => localStorage.getItem(`favorite-${deal.id}`) === 'true')
     : deals;
 
-  // Créer les cartes de deals
-  const template = dealsToDisplay
+    const template = dealsToDisplay
     .map(deal => {
       const isFavorite = localStorage.getItem(`favorite-${deal.id}`) === 'true';
-      const isBestDealsMode = topDeals.some(topDeal => topDeal.id === deal.id); // Vérifier si ce deal est dans les 5 meilleurs
+      const isBestDealsMode = topDeals.some(topDeal => topDeal.id === deal.id); // Check if the deal is in the top deals list
+      let dealScore = deal.score || "No score";  // Get score or default to "No score" if it's missing
+  
+      // If the score is a valid number, round it to 3 decimal places
+      if (dealScore !== "No score" && !isNaN(dealScore)) {
+        dealScore = parseFloat(dealScore).toFixed(3);
+      }
+  
+      // Condition to hide the score if it's "No score" or invalid
+      const dealScoreSection = dealScore !== "No score" && !isNaN(dealScore) ? `
+        <div class="deal-score">
+          <strong>Best Deal Score:</strong> <span>${dealScore}</span>
+        </div>
+      ` : ''; // If it's "No score", we don't display the score section
+  
       return `
-      <div class="deal-card ${isBestDealsMode ? 'best-deal-style' : ''}">
-        <div class="deal-header">
-          <span class="deal-id">ID: ${deal.id}</span>
-          <button class="favorite-btn" data-id="${deal.id}" data-favorite="${isFavorite}">
-              ${isFavorite ? '❤️' : '🤍'}
-          </button>
+        <div class="deal-card ${isBestDealsMode ? 'best-deal-style' : ''}">
+          <div class="deal-header">
+            <span class="deal-id">ID: ${deal.id}</span>
+            <button class="favorite-btn" data-id="${deal.id}" data-favorite="${isFavorite}">
+                ${isFavorite ? '❤️' : '🤍'}
+            </button>
+          </div>
+          <img src="${deal.image}" alt="${deal.title}" class="deal-image">
+          <div class="deal-price-discount">
+            <span class="deal-price">💰 ${deal.price}€</span>
+            <span class="deal-discount">⬇️ -${deal.discount}%</span>
+          </div>
+          <div class="deal-temp-comments">
+            <span class="deal-temperature">🔥 ${deal.temperature}°</span>
+            <span class="deal-comments">💬 ${deal.comments} comments</span>
+          </div>
+          ${dealScoreSection} <!-- Only show the deal score if valid -->
+          <a href="${deal.link}" target="_blank" class="view-deal-btn">Go to the offer</a>
         </div>
-        <img src="${deal.image}" alt="${deal.title}" class="deal-image">
-        <div class="deal-price-discount">
-          <span class="deal-price">💰 ${deal.price}€</span>
-          <span class="deal-discount">⬇️ -${deal.discount}%</span>
-        </div>
-        <div class="deal-temp-comments">
-          <span class="deal-temperature">🔥 ${deal.temperature}°</span>
-          <span class="deal-comments">💬 ${deal.comments} comments</span>
-        </div>
-        <a href="${deal.link}" target="_blank" class="view-deal-btn">Go to the offer</a>
-      </div>
-    `;
+      `;
     })
     .join('');
+  
+  
 
   div.innerHTML = template;
   fragment.appendChild(div);
 
-  // Vérification que les conteneurs existent avant d'ajouter des éléments
   const dealsButtonsContainer = document.getElementById('deals-buttons');
   if (dealsButtonsContainer) {
-    dealsButtonsContainer.innerHTML = ''; // Nettoyer les anciens boutons
-    dealsButtonsContainer.appendChild(dealsTitle); 
-    dealsButtonsContainer.appendChild(showFavoritesBtn); // Ajouter le bouton
+    dealsButtonsContainer.innerHTML = ''; // Clean previous buttons
+    dealsButtonsContainer.appendChild(dealsTitle);
+    dealsButtonsContainer.appendChild(showFavoritesBtn); // Add button to toggle favorites
   }
 
   const dealsCardsContainer = document.getElementById('deals-cards');
   if (dealsCardsContainer) {
-    dealsCardsContainer.innerHTML = ''; // Nettoyer les anciennes cartes de deals
-    dealsCardsContainer.appendChild(fragment); // Ajouter les nouvelles cartes
+    dealsCardsContainer.innerHTML = ''; // Clean previous deal cards
+    dealsCardsContainer.appendChild(fragment); // Append new deal cards
   }
 
-  // Réattacher les gestionnaires d'événements après avoir rendu les éléments
   document.querySelectorAll('.favorite-btn').forEach(button => {
     button.addEventListener('click', handleFavoriteToggle);
   });
 
-  // Ajout d'un gestionnaire d'événement pour afficher les informations d'un deal
+  // Handle clicking on a deal card to view details
   document.querySelectorAll('.deal-card').forEach(card => {
     card.addEventListener('click', async (event) => {
       const selectedSetId = card.querySelector('.deal-id')?.textContent.replace('ID: ', '').trim();
       console.log('Selected Deal ID:', selectedSetId);
 
-      if (!selectedSetId) return; // Vérifie que l'ID est bien récupéré
-  
-      // Récupérer les ventes associées
+      if (!selectedSetId) return;
       currentSales = await fetchSales(selectedSetId);
-
-      // Remplir l'ID du set LEGO
-      const selectElement = document.getElementById('lego-set-id-select');
-      if (selectElement) {
-        selectElement.value = selectedSetId; // Sélectionner l'option correspondante
-      }
       renderSales();
       renderIndicators(selectedSetId);
     });
   });
 };
+
 
 
 /**
@@ -388,7 +376,7 @@ const renderIndicators = async (legoSetId) => {
 const renderLegoSetIds = () => {
   const ids = [...new Set(currentDeals.map(deal => deal.id).filter(id => id))];
 
-  selectLegoSetIds.innerHTML = `<option value="default">Sélectionner un ID</option>` + 
+  selectLegoSetIds.innerHTML = `<option value="default">Select an ID</option>` + 
     ids.map(id => `<option value="${id}">${id}</option>`).join('');
 };
 

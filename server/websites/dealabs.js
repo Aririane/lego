@@ -1,7 +1,8 @@
-const fs = require('fs'); // Pour ecrire dans une json file 
+const fs = require('fs'); // add for building json file
 const fetch = require('node-fetch');
 const cheerio = require('cheerio');
 
+// STEP 4
 /**
  * Parse webpage data response
  * @param  {String} data - html response

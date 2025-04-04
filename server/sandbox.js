@@ -1,6 +1,8 @@
 /* eslint-disable no-console, no-process-exit */
 const avenuedelabrique = require('./websites/avenuedelabrique');
 
+// STEP 4 : launch avenue de la brique scrapping 
+
 async function sandbox (website = 'https://www.avenuedelabrique.com/nouveautes-lego') {
   try {
     console.log(`browsing ${website} website`);

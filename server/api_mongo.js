@@ -2,6 +2,8 @@ const cors = require('cors');
 const express = require('express');
 const helmet = require('helmet');
 
+// STEP 5 - store MongoDB : interaction
+
 const PORT = 8092;
 
 const app = express();
@@ -22,46 +24,44 @@ app.listen(PORT);
 
 console.log(`📡 Running on port ${PORT}`);
 
-// connexion mongo 
+// connection mongo 
 const { connectDB } = require('./database');
 
 connectDB().then((db) => {
-    console.log("✅ API connectée à MongoDB !");
+    console.log("API connected to MongoDB !");
 
-    
-
-    // Recherche dans les deals 
+    // search deals in database and catch them
     app.get('/deals/search', async (req, res) => {
       try {
-          const db = await connectDB(); // Connexion à la DB
+          const db = await connectDB(); // Connection
   
-          // Récupérer les paramètres de la requête
-          const limit = parseInt(req.query.limit) || 12; // Nombre max de résultats (default: 12)
-          const maxPrice = req.query.price ? parseFloat(req.query.price) : null; // Filtrer par prix
-          const dateFilter = req.query.date ? parseInt(req.query.date) : null; // Filtrer par date
-          const filterBy = req.query.filterBy || null; // Filtrer selon un critère spécifique
+          // takes elelent 
+          const limit = parseInt(req.query.limit) || 12; // Max 12 elements 
+          const maxPrice = req.query.price ? parseFloat(req.query.price) : null; // Filter by price
+          const dateFilter = req.query.date ? parseInt(req.query.date) : null; // Filter by date 
+          const filterBy = req.query.filterBy || null; // Filter by smthg
   
-          // Construire la requête MongoDB
+          // Make the request
           let query = {};
   
           if (maxPrice) {
-              query.price = { $lte: maxPrice }; // Prix <= maxPrice
+              query.price = { $lte: maxPrice }; // Price <= maxPrice
           }
           if (dateFilter) {
               query.timestamp = { $gte: dateFilter }; // Date >= dateFilter (timestamp)
           }
   
-          // Trier selon `filterBy`
-          let sort = { price: 1 }; // Tri par défaut : prix croissant
+          // `filterBy`
+          let sort = { price: 1 }; // default price asc
           if (filterBy === "best-discount") {
-              sort = { discount: -1 }; // Meilleure réduction
+              sort = { discount: -1 }; // best discount
           } else if (filterBy === "most-commented") {
-              sort = { comments: -1 }; // Plus commenté
+              sort = { comments: -1 }; // Most commented
           } else if (filterBy === "hottest") {
-              sort = { temperature: -1 }; // Meilleur score de température
+              sort = { temperature: -1 }; // best temp
           }
   
-          // Exécuter la requête
+          // Execute the request
           const deals = await db.collection('deals')
               .find(query)
               .sort(sort)
@@ -70,29 +70,29 @@ connectDB().then((db) => {
   
           res.json(deals);
       } catch (error) {
-          console.error("❌ Erreur lors de la recherche des deals :", error);
-          res.status(500).json({ error: "Erreur serveur" });
+          console.error("❌ Error when searching for deals :", error);
+          res.status(500).json({ error: "Server error" });
       }
   });
   app.get('/sales/search', async (req, res) => {
     try {
-        const db = await connectDB(); // Connexion à la DB
+        const db = await connectDB(); // Connection to DB
 
-        // Récupérer les paramètres de la requête
-        const limit = parseInt(req.query.limit) || 12; // Nombre max de résultats (default: 12)
-        const saleId = req.query.legoSetId || null; // Filtrer par ID (optionnel)
+        // Takes element of request for sales 
+        const limit = parseInt(req.query.limit) || 12; // max 12 results
+        const saleId = req.query.legoSetId || null; // Filter by id 
 
-        // Construire la requête MongoDB
+        // request construction
         let query = {};
 
         if (saleId) {
-            query.legoSetId = saleId; // Filtrer par ID
+            query.legoSetId = saleId; // Filter by id 
         }
 
-        // Trier par prix croissant
+        // Sort by price (asc)
         let sort = { price: 1 };
 
-        // Exécuter la requête
+        // Execute request
         const sales = await db.collection('sales')
             .find(query)
             .sort(sort)
@@ -101,33 +101,34 @@ connectDB().then((db) => {
 
         res.json(sales);
     } catch (error) {
-        console.error("❌ Erreur lors de la recherche des sales :", error);
-        res.status(500).json({ error: "Erreur serveur" });
+        console.error("❌ Error when searching for sales :", error);
+        res.status(500).json({ error: "Server error " });
     }
     });
-    // Endpoint pour récupérer un deal par son "idDeals"
+
+    // Endpoint to takes deals by id idDeals"
     app.get('/deals/:id', async (req, res) => {
         try {
             const dealId = req.params.id;
-            console.log(`🔍 Recherche du deal avec ID: ${dealId}`);
+            console.log(`Search for deals with id : ${dealId}`);
 
             const deal = await db.collection('deals').findOne({ id: dealId });
 
             if (!deal) {
-                return res.status(404).json({ error: "Deal non trouvé" });
+                return res.status(404).json({ error: "Deal not found" });
             }
 
             res.json(deal);
         } catch (error) {
-            console.error("❌ Erreur lors de la récupération du deal :", error);
-            res.status(500).json({ error: "Erreur serveur" });
+            console.error("❌ Error during deal recovery:", error);
+            res.status(500).json({ error: "Server error" });
         }
     });
 
   
 
 }).catch(err => {
-    console.error("❌ Erreur lors de la connexion API -> MongoDB :", err);
+    console.error("❌ Error during API -> MongoDB connection :", err);
 });
 module.exports = app;
 

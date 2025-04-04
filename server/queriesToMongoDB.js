@@ -1,5 +1,5 @@
 const { getBestDiscountDeals, getMostCommentedDeals, getDealsSortedByPrice,getDealsSortedByDate,getSalesByLegoSetId,getRecentSales} = require('./queries');
-
+// STEP 5: run Mongo db querries 
 async function main() {
     /*// Fonctionne mais aucun supperieur  a 50 %
     console.log('Meilleurs deals avec discount :',await getBestDiscountDeals());

@@ -1,6 +1,8 @@
 // Invoking strict mode https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Strict_mode#invoking_strict_mode
 'use strict';
 
+// First version of the portofolio with an existing api -> Step  2 / 3
+
 /**
 Description of the available api
 GET https://lego-api-blue.vercel.app/deals
@@ -90,29 +92,29 @@ const renderDeals = deals => {
   const div = document.createElement('div');
   div.classList.add('deals-container');
 
-  // section title
+  // Deals section 
   const dealsTitle = document.createElement('h2');
   dealsTitle.id = 'DealsTitle';
   dealsTitle.textContent = 'Deals Available';  
 
 
-  // Créer le bouton "Show Favorite Deals"
+  // Create "Show Favorite Deals" button
   const showFavoritesBtn = document.createElement('button');
   showFavoritesBtn.textContent = showFavoritesOnly ? 'Show All Deals' : 'Show Favorite Deals';
   showFavoritesBtn.id = 'show-favorites-btn';
 
-  // Lier l'événement au bouton
+  // Link event and button
   showFavoritesBtn.addEventListener('click', () => {
     showFavoritesOnly = !showFavoritesOnly;
-    renderDeals(deals); // Redessiner les deals en fonction de l'état
+    renderDeals(deals); // Render deals (with favorit state)
   });
 
-  // Filtrer les favoris si nécessaire
+  // Filter favorite
   const dealsToDisplay = showFavoritesOnly
     ? deals.filter(deal => localStorage.getItem(`favorite-${deal.id}`) === 'true')
     : deals;
 
-  // Créer les cartes de deals
+  // Cards for deals 
   const template = dealsToDisplay
     .map(deal => {
       const isFavorite = localStorage.getItem(`favorite-${deal.id}`) === 'true';
@@ -142,43 +144,42 @@ const renderDeals = deals => {
   div.innerHTML = template;
   fragment.appendChild(div);
 
-  // Vérification que les conteneurs existent avant d'ajouter des éléments
+  // Check that containers exist before adding elements
   const dealsButtonsContainer = document.getElementById('deals-buttons');
   if (dealsButtonsContainer) {
-    dealsButtonsContainer.innerHTML = ''; // Nettoyer les anciens boutons
+    dealsButtonsContainer.innerHTML = ''; // clean btn
     dealsButtonsContainer.appendChild(dealsTitle); 
-    dealsButtonsContainer.appendChild(showFavoritesBtn); // Ajouter le bouton
+    dealsButtonsContainer.appendChild(showFavoritesBtn); // add show fav btn 
   }
 
   const dealsCardsContainer = document.getElementById('deals-cards');
   if (dealsCardsContainer) {
-    dealsCardsContainer.innerHTML = ''; // Nettoyer les anciennes cartes de deals
-    dealsCardsContainer.appendChild(fragment); // Ajouter les nouvelles cartes
+    dealsCardsContainer.innerHTML = ''; // clean old deals 
+    dealsCardsContainer.appendChild(fragment); // Add new card 
   }
 
-  // Réattacher les gestionnaires d'événements après avoir rendu les éléments
+  // Reattach event handlers after rendering elements
   document.querySelectorAll('.favorite-btn').forEach(button => {
     button.addEventListener('click', handleFavoriteToggle);
   });
 
-  // Ajout d'un gestionnaire d'événement pour afficher les informations d'un deal
+  // Add an event handler to display deal information
   document.querySelectorAll('.deal-card').forEach(card => {
     card.addEventListener('click', async (event) => {
       const selectedSetId = card.querySelector('.deal-id')?.textContent.replace('ID: ', '').trim();
       console.log('Selected Deal ID:', selectedSetId);
 
-      if (!selectedSetId) return; // Vérifie que l'ID est bien récupéré
+      if (!selectedSetId) return; // Checks that an ID has been retrieved
   
-      // Récupérer les ventes associées
+      // Take sales for an id 
       const sales = await fetchSales(selectedSetId);
 
-      // Remplir l'ID du set LEGO
       const selectElement = document.getElementById('lego-set-id-select');
       if (selectElement) {
-        selectElement.value = selectedSetId; // Sélectionner l'option correspondante
+        selectElement.value = selectedSetId; // select an id 
       }
       
-      // Afficher les indicateurs et les ventes
+      // display sales dans indicators 
       renderIndicatorsAndSales(currentPagination, sales);
     });
   });
@@ -212,13 +213,13 @@ const renderLegoSetIds = deals => {
     `<option value="${id}">${id}</option>`
   ).join('');*/
   const options = [
-    `<option value="default" disabled>Make a selection</option>`, // Option par défaut
+    `<option value="default" disabled>Make a selection</option>`,
     ...ids.map((id) => `<option value="${id}" ${id === currentSelection ? 'selected' : ''}>${id}</option>`),
   ].join('');
 
   selectLegoSetIds.innerHTML = options;
 
-  // S'assurer que l'option sélectionnée reste celle de l'utilisateur
+  // Ensure that the selected option remains the user's choice
   if (ids.includes(currentSelection)) {
     selectLegoSetIds.value = currentSelection;
   } else {
@@ -296,14 +297,14 @@ const renderSales = (sales) => {
   const salesTitle = document.getElementById("salesTitle");
   const salesList = document.getElementById("sales-list");
 
-  // Mise à jour du titre avec le nombre de ventes
+  // Maj titles with nb of sales 
   const salesCount = sales.length;
   salesTitle.textContent = `Vinted Sales - ${salesCount}`;
 
-  // Nettoyage de la liste avant d'ajouter les nouvelles ventes
+  // clean list
   salesList.innerHTML = "";
 
-  // Création des éléments de vente
+  // display sales 
   sales.forEach((sale) => {
       const saleDiv = document.createElement("div");
       saleDiv.classList.add("sale");
@@ -422,16 +423,16 @@ selectPrice.addEventListener('change', async (event) => {
   if (!event.target.value) return;
   currentSort = event.target.value;
   if(event.target.value=="price-desc"){
-    currentDeals.sort((a, b) => b.price - a.price); // Suppose que les deals ont une propriété 'popularity'
+    currentDeals.sort((a, b) => b.price - a.price); // render by price desc
   }
   if(event.target.value == "price-asc"){
-    currentDeals.sort((a, b) => a.price - b.price); // Suppose que les deals ont une propriété 'popularity'
+    currentDeals.sort((a, b) => a.price - b.price); // render by price asc
   }
   if(event.target.value=="date-desc"){
-    currentDeals.sort((a, b) => a.published - b.published); // Suppose que les deals ont une propriété 'popularity'
+    currentDeals.sort((a, b) => a.published - b.published); // render by date desc
   }
   if(event.target.value == "date-asc"){
-    currentDeals.sort((a, b) => b.published - a.published); // Suppose que les deals ont une propriété 'popularity'
+    currentDeals.sort((a, b) => b.published - a.published); // render by date asc
   }
   //render(currentDeals, currentPagination);
   renderDealsAndPagination(currentDeals, currentPagination);

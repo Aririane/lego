@@ -1,6 +1,8 @@
 const fetch = require('node-fetch');
 const fs = require('fs'); // Pour ecrire dans une json file 
 
+// STEP 4 
+
 /**
  * Parse JSON response from Vinted API
  * @param  {Object[]} data - JSON response containing items

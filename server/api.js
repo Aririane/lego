@@ -3,6 +3,8 @@ const express = require('express');
 const helmet = require('helmet');
 const { MongoClient } = require('mongodb');
 
+// STEP 6 : api EXPRESS 
+
 const PORT = 8092;
 const MONGODB_URI = 'mongodb+srv://arianeEsilv:Xy7PLDvbdVVwznAG@cluster0.io1kb.mongodb.net/';
 const MONGODB_DB_NAME = 'Lego';
@@ -17,19 +19,19 @@ app.options('*', cors());
 
 let db;
 
-// Connexion à MongoDB
+// MongoDB connection 
 async function connectDB() {
     const client = new MongoClient(MONGODB_URI);
     await client.connect();
     db = client.db(MONGODB_DB_NAME);
-    console.log("✅ Connected to MongoDB");
+    console.log("Connected to MongoDB");
 }
 
-// Fermer la connexion MongoDB
+// Close MongoDB connection
 async function closeDB() {
     if (db) {
         await db.client.close();
-        console.log("❌ MongoDB connection closed.");
+        console.log("MongoDB connection closed.");
     }
 }
 
@@ -38,59 +40,58 @@ app.get('/', (req, res) => {
     res.send({ ack: true });
 });
 
-// recup la moyenne
+// take indicators of one Id
 app.get('/sales/average', async (req, res) => {
     try {
         const { legoSetId } = req.query;
 
-        // Vérifie si l'ID est fourni
+        // Check if the ID is provided
         if (!legoSetId) {
-            return res.status(400).json({ error: "legoSetId est requis" });
+            return res.status(400).json({ error: "legoSetId is required" });
         }
 
-        // Calcul de la moyenne et du nombre de ventes
+        // Calculate average price and number of sales
         const result = await db.collection('sales').aggregate([
             {
-                $match: { legoSetId: legoSetId } // Filtrer par ID spécifique
+                $match: { legoSetId: legoSetId } // Filter by specific ID
             },
             {
                 $group: {
                     _id: null,
-                    averagePrice: { $avg: "$price" }, // Calcul de la moyenne des prix
-                    totalDeals: { $sum: 1 } // Compter le nombre de ventes (deals)
+                    averagePrice: { $avg: "$price" }, // Average price
+                    totalDeals: { $sum: 1 } // Count sales
                 }
             }
         ]).toArray();
 
-        // Récupération des percentiles P5, P25, P50
+        // Get P5, P25, P50 percentiles
         const percentilesResult = await db.collection('sales').aggregate([
             { $match: { legoSetId: legoSetId } },
-            { $sort: { price: 1 } }, // Trier par prix croissant
+            { $sort: { price: 1 } }, // Sort by ascending price
             {
                 $group: {
                     _id: null,
-                    prices: { $push: "$price" } // Stocker tous les prix dans un tableau
+                    prices: { $push: "$price" } // Store all prices in array
                 }
             },
             {
                 $project: {
-                    p5: { $arrayElemAt: ["$prices", { $floor: { $multiply: [{ $size: "$prices" }, 0.05] } }] }, // P5 (5th percentile)
-                    p25: { $arrayElemAt: ["$prices", { $floor: { $multiply: [{ $size: "$prices" }, 0.25] } }] }, // P25 (25th percentile)
-                    p50: { $arrayElemAt: ["$prices", { $floor: { $multiply: [{ $size: "$prices" }, 0.50] } }] }  // P50 (50th percentile, médiane)
+                    p5: { $arrayElemAt: ["$prices", { $floor: { $multiply: [{ $size: "$prices" }, 0.05] } }] },
+                    p25: { $arrayElemAt: ["$prices", { $floor: { $multiply: [{ $size: "$prices" }, 0.25] } }] },
+                    p50: { $arrayElemAt: ["$prices", { $floor: { $multiply: [{ $size: "$prices" }, 0.50] } }] }
                 }
             }
         ]).toArray();
 
-        // Si aucune vente trouvée, retourner des valeurs par défaut
         const average = result.length > 0 ? result[0].averagePrice : 0;
         const totalDeals = result.length > 0 ? result[0].totalDeals : 0;
-        const p5 = percentilesResult.length > 0 ? percentilesResult[0].p5 : 0;   // P5 récupéré
-        const p25 = percentilesResult.length > 0 ? percentilesResult[0].p25 : 0; // P25 récupéré
-        const p50 = percentilesResult.length > 0 ? percentilesResult[0].p50 : 0; // P50 récupéré
+        const p5 = percentilesResult.length > 0 ? percentilesResult[0].p5 : 0;
+        const p25 = percentilesResult.length > 0 ? percentilesResult[0].p25 : 0;
+        const p50 = percentilesResult.length > 0 ? percentilesResult[0].p50 : 0;
 
         res.json({
             legoSetId,
-            average: Math.round(average * 100) / 100, // Arrondi à 2 décimales
+            average: Math.round(average * 100) / 100,
             totalDeals,
             P5: p5,
             P25: p25,
@@ -98,42 +99,37 @@ app.get('/sales/average', async (req, res) => {
         });
 
     } catch (error) {
-        console.error("❌ Erreur lors du calcul des statistiques:", error);
-        res.status(500).json({ error: "Erreur interne du serveur" });
+        console.error("❌ Error calculating statistics:", error);
+        res.status(500).json({ error: "Internal server error" });
     }
 });
 
-
-
-
-// GET /deals/search - Recherche de deals avec filtres
+// GET /deals/search - Search deals with filters
 app.get('/deals/search', async (req, res) => {
     try {
-
         const { limit = 40, price, date, filterBy } = req.query;
-       
 
         const query = {};
         const sort = {};
 
-        // Filtrage par prix
+        // Price filtering
         if (price) {
             if (price.startsWith('>')) {
                 const value = parseFloat(price.substring(1));
                 query.price = { $gt: value };
-                console.log(`Filtre prix > ${value}`);
+                console.log(`Price filter > ${value}`);
             } else if (price.startsWith('<')) {
                 const value = parseFloat(price.substring(1));
                 query.price = { $lt: value };
-                console.log(`Filtre prix < ${value}`);
+                console.log(`Price filter < ${value}`);
             } else {
                 const value = parseFloat(price);
                 query.price = value;
-                console.log(`Filtre prix = ${value}`);
+                console.log(`Price filter = ${value}`);
             }
         }
 
-        // Filtrage par date
+        // Date filtering
         if (date) {
             const startDate = new Date(date);
             const endDate = new Date(date);
@@ -145,104 +141,97 @@ app.get('/deals/search', async (req, res) => {
                     $lt: endDate.toISOString()
                 };
             } else {
-                console.log(`Date incorrecte : ${date}`);
+                console.log(`Invalid date: ${date}`);
             }
         }
 
-        // Tri par critère
+        // Sorting logic
         if (filterBy === 'best-discount') {
             sort.discount = -1;
-            console.log('Tri par meilleure réduction');
+            console.log('Sorting by best discount');
         } else if (filterBy === 'most-commented') {
             sort.comments = -1;
-            console.log('Tri par nombre de commentaires');
+            console.log('Sorting by most comments');
         } else {
             sort.price = 1;
-            console.log('Tri par prix croissant');
+            console.log('Sorting by lowest price');
         }
 
-        console.log('--- QUERY FINALE ---');
+        console.log('--- FINAL QUERY ---');
         console.log('Query:', query);
         console.log('Sort:', sort);
         console.log('Limit:', limit);
 
-        // Exécution de la requête MongoDB
-        const deals = await db.collection('deals').find(query).sort(sort).limit(parseInt(limit)).toArray();
-
+        const deals = await db.collection('deals')
+            .find(query)
+            .sort(sort)
+            .limit(parseInt(limit))
+            .toArray();
 
         if (deals.length === 0) {
-            console.log('Aucun résultat trouvé');
-            return res.status(404).json({ error: 'Aucun deal trouvé' });
+            console.log('No results found');
+            return res.status(404).json({ error: 'No deals found' });
         }
 
         res.json({ limit: parseInt(limit), total: deals.length, results: deals });
 
     } catch (error) {
-        console.error('Erreur lors de la recherche des deals:', error);
-        res.status(500).json({ error: 'Erreur interne du serveur' });
+        console.error('Error searching for deals:', error);
+        res.status(500).json({ error: 'Internal server error' });
     }
 });
 
-// recup les meilleurs deals
+// Get best deals
 app.get('/deals/best', async (req, res) => {
     try {
         const { limit = 20 } = req.query;
 
-        // Récupération de tous les deals
         const deals = await db.collection('deals').find().toArray();
 
         if (!deals.length) {
-            return res.status(404).json({ error: 'Aucun deal trouvé' });
+            return res.status(404).json({ error: 'No deals found' });
         }
 
         const scoredDeals = await Promise.all(deals.map(async (deal) => {
             const sales = await db.collection('sales').find({ legoSetId: deal.id }).toArray();
 
             if (!sales.length) {
-                return { ...deal, score: 0 }; // Si pas de vente, score = 0
+                return { ...deal, score: 0 };
             }
 
-            // Calcul du Lifetime moyen (temps entre mise en vente et vente)
-            const lifetimeAvg = sales.reduce((sum, sale) => sum + (sale.lifetime || 0), 0) / sales.length|| 0;
-
-            // Calcul de pValue/prix moyen
-            const pValueAvg = sales.reduce((sum, sale) => sum + (sale.pvalue / sale.price), 0) / sales.length|| 0;
-
-            // Nombre de ventes
+            const lifetimeAvg = sales.reduce((sum, sale) => sum + (sale.lifetime || 0), 0) / sales.length || 0;
+            const pValueAvg = sales.reduce((sum, sale) => sum + (sale.pvalue / sale.price), 0) / sales.length || 0;
             const totalSales = sales.length || 0;
 
-            // Score de deal basé sur plusieurs critères
-            const lifetimeScore = 1 / (lifetimeAvg + 1); // Plus c'est bas, mieux c'est
-            const pValueScore = pValueAvg; // Plus c'est haut, mieux c'est
-            const discountScore = deal.discount / 100; // Normalisation
-            const temperatureScore = deal.temperature / 100; // Normalisation
-            const salesScore = Math.log(1 + totalSales); // Logarithmique pour lisser
+            const lifetimeScore = 1 / (lifetimeAvg + 1);
+            const pValueScore = pValueAvg;
+            const discountScore = deal.discount / 100;
+            const temperatureScore = deal.temperature / 100;
+            const salesScore = Math.log(1 + totalSales);
 
-            // Score final avec pondération
             const finalScore = 
                 (lifetimeScore * 0.3) +
                 (pValueScore * 0.3) +
                 (discountScore * 0.2) +
                 (temperatureScore * 0.1) +
                 (salesScore * 0.1);
-            //console.log('final score'+finalScore);
 
             return { ...deal, score: finalScore };
         }));
 
-        // Trier les deals par score décroissant
-        const bestDeals = scoredDeals.sort((a, b) => b.score - a.score).slice(0, parseInt(limit));
+        const bestDeals = scoredDeals
+            .sort((a, b) => b.score - a.score)
+            .slice(0, parseInt(limit));
 
         res.json({ total: bestDeals.length, results: bestDeals });
 
     } catch (error) {
-        console.error("Erreur lors du calcul des meilleurs deals:", error);
-        res.status(500).json({ error: "Erreur interne du serveur" });
+        console.error("Error calculating best deals:", error);
+        res.status(500).json({ error: "Internal server error" });
     }
 });
 
-
-// GET /deals/:id - Obtenir un deal spécifique
+// GET /deals/:id - Get specific deal
 app.get('/deals/:id', async (req, res) => {
     try {
         const { id } = req.params;
@@ -250,33 +239,30 @@ app.get('/deals/:id', async (req, res) => {
         const deal = await db.collection('deals').findOne({ id });
 
         if (!deal) {
-            return res.status(404).json({ error: 'Deal non trouvé' });
+            return res.status(404).json({ error: 'Deal not found' });
         }
 
         res.json(deal);
     } catch (error) {
-        console.error(`Erreur lors de la récupération du deal ID ${req.params.id}:`, error);
-        res.status(500).json({ error: 'Erreur interne du serveur' });
+        console.error(`Error retrieving deal ID ${req.params.id}:`, error);
+        res.status(500).json({ error: 'Internal server error' });
     }
 });
 
-// GET /sales/search - Recherche de ventes spécifiques
-// GET /sales/search - Recherche des ventes par ID, triées par prix croissant
+// GET /sales/search - Search for sales by ID, sorted by price
 app.get('/sales/search', async (req, res) => {
     try {
         const { limit = 200, legoSetId } = req.query;
 
-        // Vérifier si un ID est fourni
         if (!legoSetId) {
-            return res.status(400).json({ error: 'legoSetId est requis' });
+            return res.status(400).json({ error: 'legoSetId is required' });
         }
 
-        const query = { legoSetId: legoSetId }; // Filtre par ID du set LEGO
-        const sort = { price: 1 }; // Tri par prix croissant
+        const query = { legoSetId: legoSetId };
+        const sort = { price: 1 };
 
-        console.log(`🔍 Recherche des ventes pour LegoSetId = ${legoSetId}, trié par prix croissant`);
+        console.log(`🔍 Searching for sales of LegoSetId = ${legoSetId}, sorted by lowest price`);
 
-        // Exécution de la requête MongoDB
         const sales = await db.collection('sales')
             .find(query)
             .sort(sort)
@@ -284,34 +270,33 @@ app.get('/sales/search', async (req, res) => {
             .toArray();
 
         if (sales.length === 0) {
-            console.log('⚠️ Aucun résultat trouvé');
-            return res.status(404).json({ error: 'Aucune vente trouvée' });
+            console.log('⚠️ No results found');
+            return res.status(404).json({ error: 'No sales found' });
         }
 
         res.json({ limit: parseInt(limit), total: sales.length, results: sales });
 
     } catch (error) {
-        console.error('❌ Erreur lors de la recherche des ventes:', error);
-        res.status(500).json({ error: 'Erreur interne du serveur' });
+        console.error('❌ Error searching sales:', error);
+        res.status(500).json({ error: 'Internal server error' });
     }
 });
 
-
-// Lancer le serveur et connecter à MongoDB
+// Start server and connect to MongoDB
 async function startServer() {
     try {
         await connectDB();
 
         app.listen(PORT, () => {
-            console.log(`🚀 Serveur en cours d'exécution sur le port ${PORT}`);
+            console.log(`🚀 Server running on port ${PORT}`);
         });
     } catch (error) {
-        console.error('Erreur de connexion à MongoDB:', error);
+        console.error('Error connecting to MongoDB:', error);
         process.exit(1);
     }
 }
 
-// Exporter le handler pour Vercel
+// Export handler for Vercel
 module.exports = async (req, res) => {
     if (!db) {
         await connectDB();
@@ -319,7 +304,7 @@ module.exports = async (req, res) => {
     return app(req, res);
 };
 
-// Arrêt propre de la connexion MongoDB
+// Graceful shutdown
 process.on('SIGINT', async () => {
     await closeDB();
     process.exit(0);

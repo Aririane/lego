@@ -2,6 +2,8 @@
 // https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Strict_mode#invoking_strict_mode
 'use strict';
 
+// STEP 1 
+
 console.log('🚀 This is it.');
 
 // varible en majuscule : variable pour stocker des constantes //list/tableau

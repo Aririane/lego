@@ -2,6 +2,8 @@
 const dealabs = require('./websites/dealabs');
 const { spawn } = require('child_process');
 
+// Step 4: all scrapping in 1 time 
+
 async function sandbox(website = 'https://www.dealabs.com/groupe/lego') {
   try {
     // takes all deals from deallabs
