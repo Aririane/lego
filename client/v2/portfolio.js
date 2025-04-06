@@ -10,7 +10,7 @@ let currentDeals = [];
 let currentSales = [];
 let currentPagination = {};
 let showFavoritesOnly = false;
-let showingBestDeals = false;     // Indique si on affiche les meilleurs deals ou tous les deals
+let showingBestDeals = false;     
 let topDeals = [];
 
 // all deals to have good tri
@@ -50,23 +50,23 @@ const fetchDeals = async () => {
   try {
     console.log("Fetching all deals...");
     
-    // Récupère un grand nombre de deals pour gérer la pagination localement
+    // takes all deals form my api
     const response = await fetch(`https://lego-blond-two.vercel.app/deals/search?limit=40`);
     const body = await response.json();
 
     if (!body.results || !Array.isArray(body.results)) {
-      console.error("Réponse API invalide :", body);
+      console.error("Invalid API response :", body);
       return { deals: [], pagination: { currentPage: 1, pageSize: 6, pageCount: 0} };
     }
 
-    console.log(`Deals récupérés : ${body.results.length}`);
+    console.log(`Deals fetch : ${body.results.length}`);
 
     return { 
       deals: body.results, 
       pagination: { currentPage: 1, pageSize: 6, pageCount: Math.ceil(body.results.length / 6) } 
     };
   } catch (error) {
-    console.error("Erreur lors de la récupération des deals :", error);
+    console.error("Error fetching deals :", error);
     return { deals: [], pagination: { currentPage: 1, pageSize: 6, pageCount: 0 } };
   }
 };
@@ -78,25 +78,26 @@ const fetchDeals = async () => {
  */
 const fetchSales = async (id) => {
   try {
+    // takes sales on my api for a specific id
     const response = await fetch(`https://lego-blond-two.vercel.app/sales/search?legoSetId=${id}`);
     const body = await response.json();
 
-    console.log("Réponse API fetchSales :", body); // Debugging
-
+    //console.log("Réponse API fetchSales :", body);
 
     if (!body.results || !Array.isArray(body.results)) {
-      //console.error("Réponse API invalide :", body);
       return [];
     }
 
     return body.results;
   } catch (error) {
-    console.error("Erreur lors de la récupération des ventes :", error);
+    console.error("Error fetching sales :", error);
     return [];
   }
 };
 
-// Charger et filtrer les meilleurs deals
+/***
+ * Charger et filtrer les meilleurs deals
+ */
 const fetchBestDeals = async () => {
   try {
     console.log("Fetching best deals...");
@@ -105,28 +106,28 @@ const fetchBestDeals = async () => {
     const body = await response.json();
 
     if (!body.results || !Array.isArray(body.results)) {
-      console.error("Réponse API invalide :", body);
+      console.error("API answer invalid :", body);
       return [];
     }
 
 
     return body.results;
   } catch (error) {
-    console.error("Erreur lors de la récupération des meilleurs deals :", error);
+    console.error("Error fetching best deals :", error);
     return [];
   }
 };
 
 const StoreBestDeals = async () => {
   try {
-    const bestDealsDisp = await fetchBestDeals(); // Récupérer tous les deals
-    topDeals = bestDealsDisp.slice(0, 5); // Prendre les 5 meilleurs
+    const bestDealsDisp = await fetchBestDeals(); // fetch deals 
+    topDeals = bestDealsDisp.slice(0, 5); // Takes 5 best
   } catch (error) {
-    console.error("Erreur lors de la récupération des meilleurs deals :", error);
-    topDeals = []; // En cas d'erreur, s'assurer que c'est un tableau vide
+    console.error("Error fetching best deals :", error);
+    topDeals = []; // error case
   }
 };
-// Charger les meilleurs deals au début -> pour l'affichage global
+// Load best deals at start -> for global display (best deals ion yellow)
 StoreBestDeals();
 
 /**
@@ -157,41 +158,40 @@ const renderDeals = (deals) => {
   dealsTitle.id = 'DealsTitle';
   dealsTitle.textContent = showingBestDeals ? 'Best Deals' : 'Deals Available';
 
-  // Bouton favoris
+  // Favorite btn
   const showFavoritesBtn = document.createElement('button');
   showFavoritesBtn.textContent = showFavoritesOnly ? 'Show All Deals' : 'Show Favorite Deals';
   showFavoritesBtn.id = 'show-favorites-btn';
 
-
-  // Conteneur des boutons
+  // btn container
   const controlsContainer = document.createElement('div');
   controlsContainer.className = 'deals-controls';
   controlsContainer.appendChild(showFavoritesBtn);
 
-  // creation bouton explication que si best deals est activé 
+  // Explain bouton explication (only when bestdeals activate) 
   if (showingBestDeals) {
     const explainScoreBtn = document.createElement('button');
     explainScoreBtn.textContent = '❓';
     explainScoreBtn.id = 'explain-score-btn';
 
     explainScoreBtn.addEventListener('click', () => {
-      alert(`Le score est basé sur :
-  - ⏱️ 30% - Durée de disponibilité (plus c’est court, mieux c’est)
-  - 💰 30% - Valeur de revente / prix 
-  - 🔻 20% - Réduction
-  - 🔥 10% - Température
-  - 🛒 10% - Nombre de ventes`);
+      alert(`The score is based on:
+  - ⏱️ 30% - Availability time (the shorter the better)
+ - 💰 30% - Resale value / price 
+ - 🔻 20% - Discount
+ - 🔥 10% - Temperature
+ - 🛒 10% - Number of sales`);
     });
 
     controlsContainer.appendChild(explainScoreBtn);
   }
 
-  // Filtrage favoris
+  // Filter favorite
   const dealsToDisplay = showFavoritesOnly
     ? deals.filter(deal => localStorage.getItem(`favorite-${deal.id}`) === 'true')
     : deals;
 
-  // Création des cartes
+  // Create cards
   const template = dealsToDisplay
     .map(deal => {
       const isFavorite = localStorage.getItem(`favorite-${deal.id}`) === 'true';
@@ -248,7 +248,9 @@ const renderDeals = (deals) => {
   }
 
 
-  // Events
+  /**
+   * Events
+   */
 
   // Favorites
   document.querySelectorAll('.favorite-btn').forEach(button => {
@@ -261,7 +263,7 @@ const renderDeals = (deals) => {
     renderDeals(deals);
   });
 
-  // Click sur une carte pour afficher les ventes
+  // Click on card to display its vinted sales
   document.querySelectorAll('.deal-card').forEach(card => {
     card.addEventListener('click', async (event) => {
       const selectedSetId = card.querySelector('.deal-id')?.textContent.replace('ID: ', '').trim();
@@ -269,7 +271,7 @@ const renderDeals = (deals) => {
 
       currentSales = await fetchSales(selectedSetId);
 
-      // Mise à jour du sélecteur
+      // Update selector
       const selectElement = document.getElementById('lego-set-id-select');
       if (selectElement) {
         selectElement.value = selectedSetId;
@@ -292,20 +294,20 @@ const renderSales = () => {
   const salesTitle = document.getElementById("salesTitle");
   const salesList = document.getElementById("sales-list");
 
-  // Mise à jour du titre avec le nombre de ventes
+  // Update title with nb of sales 
   const salesCount = sales.length;
   salesTitle.textContent = `Vinted Sales - ${salesCount}`;
 
-  // Nettoyage de la liste avant d'ajouter les nouvelles ventes
+  // clean list for new sales 
   salesList.innerHTML = "";
 
   if (salesCount === 0) {
-    // Afficher un message lorsqu'il n'y a pas de ventes
+    // print when no vinted sales 
     salesList.innerHTML = `<p>No sales available on Vinted for this ID :(</p>`;
     return;
   }
 
-  // Création des éléments de vente
+  // display list of sales 
   sales.forEach((sale) => {
       const saleDiv = document.createElement("div");
       saleDiv.classList.add("sale");
@@ -331,14 +333,14 @@ const renderPagination = () => {
   selectPage.selectedIndex = currentPagination.currentPage - 1;
 };
 
-
 const fetchSalesStats = async (legoSetId) => {
   try {
+      // takes stat for an id 
       const response = await fetch(`https://lego-blond-two.vercel.app/sales/average?legoSetId=${legoSetId}`);
       const data = await response.json();
       return data;
   } catch (error) {
-      console.error("Erreur lors de la récupération des statistiques:", error);
+      console.error("Error fetching state:", error);
       return { average: 0, totalDeals: 0, P5: 0, P25: 0, P50: 0 };
   }
 };
@@ -348,8 +350,8 @@ const fetchSalesStats = async (legoSetId) => {
  */
 const renderIndicators = async (legoSetId) => {
   if (currentSales.length === 0) {
-    // Si aucune vente n'existe, on ne fait pas les calculs d'indicateurs
-    console.log("No sales available, skipping indicator rendering...");
+    // No sales -> no calculs 
+    console.log("No sales available");
     spanNbDeals.innerHTML = 0;
     spanNbSales.innerHTML = 0;
     spanAverage.innerHTML = '0';
@@ -357,12 +359,10 @@ const renderIndicators = async (legoSetId) => {
     spanP25.innerHTML = '0';
     spanP50.innerHTML = '0';
     spanLifeTime.innerHTML = '0.00';
-    return; // Sortir de la fonction sans faire les calculs
+    return; 
   }
 
-  // Si on arrive ici, cela signifie que les ventes existent.
-  console.log("Sales available, fetching stats...");
-
+  // Fetching stats
   spanNbDeals.innerHTML = allDeals.length;
   spanNbSales.innerHTML = currentSales.length;
 
@@ -370,14 +370,14 @@ const renderIndicators = async (legoSetId) => {
   console.log("Fetched Stats:", { average, totalDeals, P5, P25, P50 });
   
 
-  // Mettez à jour les éléments avec les nouvelles valeurs
+  // takes the statistics
   spanAverage.innerHTML = `${average}`;
   spanP5.innerHTML = `${P5}`;
   spanP25.innerHTML = `${P25}`;
   spanP50.innerHTML = `${P50}`;
 
 
-  // Calcul de lifetime comme vous l'avez déjà fait
+  // Calculate lifetime
   const currentDate = new Date();
   const lifetimeValues = sales
     .filter((sale) => {
@@ -396,11 +396,6 @@ const renderIndicators = async (legoSetId) => {
     : 0;
 
   spanLifeTime.innerHTML = averageLifetime.toFixed(2);
-};
-
-
-
-/**
 };
 
 /**
@@ -428,7 +423,7 @@ const render = () => {
  * Event Listeners
  */
 document.addEventListener('DOMContentLoaded', async () => {
-  const { deals, pagination } = await fetchDeals(); // Récupérer toutes les offres au chargement
+  const { deals, pagination } = await fetchDeals(); // Retrieve all offers on loading
 
   allDeals = deals;
   currentPagination = pagination;
@@ -437,7 +432,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 });
 
 /**
- * Gestion du changement de page
+ * Page change management -nb element/page
  */
 selectPage.addEventListener('change', (event) => {
   currentPagination.currentPage = parseInt(event.target.value);
@@ -445,7 +440,7 @@ selectPage.addEventListener('change', (event) => {
 });
 
 /**
- * Gestion du changement de taille de page
+ * Page change management - page number
  */
 selectShow.addEventListener('change', (event) => {
   currentPagination.pageSize = parseInt(event.target.value);
@@ -455,18 +450,18 @@ selectShow.addEventListener('change', (event) => {
 });
 
 /**
- * Bouton pour afficher les sales selon l'id
+ * Buton to select sales of an id 
  */
 selectLegoSetIds.addEventListener('change', async (event) => {
-  const selectedSetId = event.target.value; // Récupère l'ID sélectionné
+  const selectedSetId = event.target.value; // takes selected id
   console.log(`Lego Set sélectionné: ${selectedSetId}`);
 
   if (!selectedSetId || selectedSetId === "default") return;
 
-  // Récupérer les ventes liées à cet ID
+  // Fetch sales of this id 
   currentSales = await fetchSales(selectedSetId);
 
-  // Afficher les ventes et mettre à jour les indicateurs
+  // display sales and indicators 
   renderSales();
   renderIndicators(selectedSetId);
 });  
@@ -493,51 +488,45 @@ const handleFavoriteToggle = (event) => {
 };
 
 /**
- * gestion des boutons
+ * button management 
  */
 /**
- * Fonction générique de tri des deals en fonction de différents critères
- * @param {string} filterBy - Critère pour filtrer les deals (ex: "best-discount", "most-commented", "hot-deals")
- * @param {string} sortKey - Clé par laquelle trier les deals (ex: "discount", "comments", "temperature")
+ * Fonction to sort deals 
+ * @param {string} filterBy - filter les deals ("best-discount", "most-commented", "hot-deals")
+ * @param {string} sortKey - key to sort deals ("discount", "comments", "temperature")
  */
 const sortDeals = async (filterBy, sortKey) => {
   try {
     console.log(`Fetching all deals for ${filterBy} ...`);
 
-    // Appel API avec le paramètre filterBy
+    // call API for filterBy
     const response = await fetch(`https://lego-blond-two.vercel.app/deals/search?filterBy=${filterBy}`);
     const body = await response.json();
 
     if (!body.results || !Array.isArray(body.results)) {
-      console.error("Réponse API invalide :", body);
+      console.error("API answer invalid : :", body);
       return;
     }
 
     console.log(`Deals récupérés : ${body.results.length}`);
 
-    // Tri des deals par la clé spécifiée (ordre décroissant)
+    // order deals dec
     const sortedDeals = body.results.sort((a, b) => b[sortKey] - a[sortKey]);
 
-    // Mettre à jour la variable globale allDeals
+    // Updates deals
     allDeals = sortedDeals;
 
-    // Mettre à jour la pagination si besoin
-    currentPagination = {
-      currentPage: 1,
-      pageSize: currentPagination.pageSize || 6, // garder la taille actuelle ou 6 par défaut
-      pageCount: Math.ceil(sortedDeals.length / (currentPagination.pageSize || 6))
-    };
-
-    // Réafficher la page avec les nouveaux deals triés
+    // display 
     render();
     // reset bouton sort by
     selectPrice.value = "selection";
-    // resset all deals btn 
-    bestDealsSlider.style.display = "none";  // Cacher le slider
-    bestDealsInfo.style.display = "none";  // Cacher le best-deals-info
-    showingBestDeals = false;  // Revenir à l'état "tous les deals"
-    bestDealsCount.textContent = 5;  // Remettre à 5 le nombre de deals affichés
-    toggleBestDealsBtn.textContent = "Best Deals!";  // Modifier le texte du bouton
+
+    // reset all deals btn 
+    bestDealsSlider.style.display = "none";  // hide slider
+    bestDealsInfo.style.display = "none";  // hide best-deals-info
+    showingBestDeals = false;  // Go back to "all deals " mode
+    bestDealsCount.textContent = 5;  // 5 best deals in Yellow
+    toggleBestDealsBtn.textContent = "Best Deals!";  // reste txt content
 
 
   } catch (error) {
@@ -545,113 +534,101 @@ const sortDeals = async (filterBy, sortKey) => {
   }
 };
 
-// Ajout des écouteurs d'événements pour chaque bouton
+// event handler 
 document.querySelector('#best-discount').addEventListener('click', () => sortDeals('best-discount', 'discount'));
 document.querySelector('#most-commented').addEventListener('click', () => sortDeals('most-commented', 'comments'));
 document.querySelector('#hot-deals').addEventListener('click', () => sortDeals('hot-deals', 'temperature'));
 
 /**
- * Fonction générique de tri des deals par prix et dates en fonction de la sélection de l'utilisateur
+ * Fonction to sort deals by price/date 
  */
 selectPrice.addEventListener('change', async (event) => {
-  if (!event.target.value) return; // Si aucune valeur n'est sélectionnée, on arrête ici.
+  if (!event.target.value) return; // no value selected -> stop here
   currentSort = event.target.value;
 
   try {
-    // Chargement des deals depuis l'API selon le tri choisi
+    // takes deals from api
     console.log(`Fetching all deals for sorting by ${event.target.value} ...`);
     
     let response;
     let body;
     let sortedDeals;
     
-    // Faire la requête API avec les différents filtres en fonction du tri
+    // request in fonction of the target value 
     if (event.target.value === "price-desc" || event.target.value === "price-asc") {
-      // Si tri par prix
+      // sort by price 
       response = await fetch('https://lego-blond-two.vercel.app/deals/search');
       body = await response.json();
 
       if (!body.results || !Array.isArray(body.results)) {
-        console.error("Réponse API invalide :", body);
+        console.error("API answer invalid : :", body);
         return;
       }
-
-      // Tri par prix
       sortedDeals = body.results.sort((a, b) => {
         if (event.target.value === "price-desc") {
-          return b.price - a.price;  // Tri décroissant par prix
+          return b.price - a.price;  // dec
         } else {
-          return a.price - b.price;  // Tri croissant par prix
+          return a.price - b.price;  // asc
         }
       });
 
     } else if (event.target.value === "date-desc" || event.target.value === "date-asc") {
-      // Si tri par date
+      // sort by date 
       response = await fetch('https://lego-blond-two.vercel.app/deals/search');
       body = await response.json();
 
       if (!body.results || !Array.isArray(body.results)) {
-        console.error("Réponse API invalide :", body);
+        console.error("API answer invalid : :", body);
         return;
       }
 
-      // Tri par date
       sortedDeals= body.results.sort((a, b) => {
         if (event.target.value === "date-desc") {
-          return b.timestamp- a.timestamp;  // Tri décroissant par date
+          return b.timestamp- a.timestamp;  // desc
         } else {
-          return a.timestamp - b.timestamp;  // Tri croissant par date
+          return a.timestamp - b.timestamp;  // asc
         }
       });
     }
 
-    // Mettre à jour la variable globale allDeals
+    // update deals to show 
     allDeals = sortedDeals;
 
-    // Mettre à jour la pagination si besoin
-    currentPagination = {
-      currentPage: 1,
-      pageSize: currentPagination.pageSize || 6, // garder la taille actuelle ou 6 par défaut
-      pageCount: Math.ceil(sortedDeals.length / (currentPagination.pageSize || 6))
-    };
-
-    // Réafficher la page avec les nouveaux deals triés
+    // display
     render();
 
   } catch (error) {
-    console.error("Erreur lors de la récupération des deals :", error);
+    console.error("Error fetching deals  :", error);
   }
 
-  // Assurez-vous que la valeur du tri sélectionné est bien rétablie après le rendu
+  // Make sure that the value of the selected sort is restored after rendering.
   selectPrice.value = currentSort;
   console.log(event.target.value);
 
-  // reset  all deals btn 
-  bestDealsSlider.style.display = "none";  // Cacher le slider
-    bestDealsInfo.style.display = "none";  // Cacher le best-deals-info
-    showingBestDeals = false;  // Revenir à l'état "tous les deals"
-    bestDealsCount.textContent = 5;  // Remettre à 5 le nombre de deals affichés
-    toggleBestDealsBtn.textContent = "Best Deals!";  // Modifier le texte du bouton
+  // reset  best deals btn 
+  bestDealsSlider.style.display = "none";  // hide slider
+    bestDealsInfo.style.display = "none";  // hide best-deals-info
+    showingBestDeals = false;  // Go back to "all deals " mode
+    bestDealsCount.textContent = 5;  // 5 best deals in Yellow
+    toggleBestDealsBtn.textContent = "Best Deals!";  // reset txt content
 });
 
 /**
- * Calcul des best deals 
+ * best deals features 
  */
 // Sélection des éléments
-// 🎯 Sélection des éléments HTML
-// Sélection des éléments HTML
 const toggleBestDealsBtn = document.getElementById('toggle-best-deals');
 const bestDealsSlider = document.getElementById('best-deals-slider');
 const bestDealsCount = document.getElementById('best-deals-count');
 const bestDealsInfo = document.getElementById('best-deals-info');
 const dealsTitle = document.getElementById('DealsTitle');
 
-// États
+// State
 let bestDeals = [];
 let previousDeals = [];
 let previousPage = {};
 
-// Met à jour l'affichage en fonction du slider (ne modifie pas les previous!)
+// Update with the slider
 const updateBestDealsDisplay = () => {
   if (showingBestDeals) {
     const count = parseInt(bestDealsSlider.value, 10);
@@ -668,12 +645,12 @@ const updateBestDealsDisplay = () => {
   render();
 };
 
-// Gère le bouton "Best Deals!"
+// best deals btn event
 toggleBestDealsBtn.addEventListener('click', async () => {
   if (!showingBestDeals) {
-    // Passe en mode Best Deals
+    // go to Best Deals mode
 
-    // 👉 Sauvegarde les "All Deals" et pagination seulement une fois
+    // keeps "All Deals" et pagination 
     previousDeals = [...allDeals];
     previousPage = { ...currentPagination };
 
@@ -685,7 +662,7 @@ toggleBestDealsBtn.addEventListener('click', async () => {
     showingBestDeals = true;
 
   } else {
-    // 🔙 Retour au mode "All Deals"
+    // go back "All Deals" mode
     bestDealsSlider.style.display = "none";
     bestDealsInfo.style.display = "none";
     toggleBestDealsBtn.textContent = "Best Deals!";
@@ -695,5 +672,5 @@ toggleBestDealsBtn.addEventListener('click', async () => {
   updateBestDealsDisplay();
 });
 
-// Slider = change le nombre de deals visibles (mais ne touche pas aux "previous")
+// Slider = change the nb of deals available 
 bestDealsSlider.addEventListener('input', updateBestDealsDisplay);
