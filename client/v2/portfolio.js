@@ -10,6 +10,7 @@ let currentDeals = [];
 let currentSales = [];
 let currentPagination = {};
 let showFavoritesOnly = false;
+let showingBestDeals = false;     // Indique si on affiche les meilleurs deals ou tous les deals
 let topDeals = [];
 
 // all deals to have good tri
@@ -147,54 +148,70 @@ const paginateDeals = () => {
  * Render list of deals
  * @param  {Array} deals
  */
-/**
- * Render list of deals
- * @param  {Array} deals
- * @param  {boolean} isBestDealsMode - Indique si on est en mode meilleurs deals
- */
-const renderDeals = (deals, isBestDealsMode = false) => {
+const renderDeals = (deals) => {
   const fragment = document.createDocumentFragment();
   const div = document.createElement('div');
   div.classList.add('deals-container');
 
-  // section title
   const dealsTitle = document.createElement('h2');
   dealsTitle.id = 'DealsTitle';
-  dealsTitle.textContent = isBestDealsMode ? 'Best Deals' : 'Deals Available';
+  dealsTitle.textContent = showingBestDeals ? 'Best Deals' : 'Deals Available';
 
+  // Bouton favoris
   const showFavoritesBtn = document.createElement('button');
   showFavoritesBtn.textContent = showFavoritesOnly ? 'Show All Deals' : 'Show Favorite Deals';
   showFavoritesBtn.id = 'show-favorites-btn';
 
-  // Handle the filtering of favorites
+
+  // Conteneur des boutons
+  const controlsContainer = document.createElement('div');
+  controlsContainer.className = 'deals-controls';
+  controlsContainer.appendChild(showFavoritesBtn);
+
+  // creation bouton explication que si best deals est activé 
+  if (showingBestDeals) {
+    const explainScoreBtn = document.createElement('button');
+    explainScoreBtn.textContent = '❓';
+    explainScoreBtn.id = 'explain-score-btn';
+
+    explainScoreBtn.addEventListener('click', () => {
+      alert(`Le score est basé sur :
+  - ⏱️ 30% - Durée de disponibilité (plus c’est court, mieux c’est)
+  - 💰 30% - Valeur de revente / prix 
+  - 🔻 20% - Réduction
+  - 🔥 10% - Température
+  - 🛒 10% - Nombre de ventes`);
+    });
+
+    controlsContainer.appendChild(explainScoreBtn);
+  }
+
+  // Filtrage favoris
   const dealsToDisplay = showFavoritesOnly
     ? deals.filter(deal => localStorage.getItem(`favorite-${deal.id}`) === 'true')
     : deals;
 
-    const template = dealsToDisplay
+  // Création des cartes
+  const template = dealsToDisplay
     .map(deal => {
       const isFavorite = localStorage.getItem(`favorite-${deal.id}`) === 'true';
-      const isBestDealsMode = topDeals.some(topDeal => topDeal.id === deal.id); // Check if the deal is in the top deals list
-      let dealScore = deal.score || "No score";  // Get score or default to "No score" if it's missing
-  
-      // If the score is a valid number, round it to 3 decimal places
-      if (dealScore !== "No score" && !isNaN(dealScore)) {
-        dealScore = parseFloat(dealScore).toFixed(3);
+      const isInTopDeals = topDeals.some(topDeal => topDeal.id === deal.id);
+
+      let scoreSection = '';
+      if (typeof deal.score === 'number' && !isNaN(deal.score)) {
+        const roundedScore = deal.score.toFixed(3);
+        scoreSection = `
+          <div class="deal-score">
+            <strong>Best Deal Score:</strong> <span>${roundedScore}</span>
+          </div>`;
       }
-  
-      // Condition to hide the score if it's "No score" or invalid
-      const dealScoreSection = dealScore !== "No score" && !isNaN(dealScore) ? `
-        <div class="deal-score">
-          <strong>Best Deal Score:</strong> <span>${dealScore}</span>
-        </div>
-      ` : ''; // If it's "No score", we don't display the score section
-  
+
       return `
-        <div class="deal-card ${isBestDealsMode ? 'best-deal-style' : ''}">
+        <div class="deal-card ${isInTopDeals ? 'best-deal-style' : ''}">
           <div class="deal-header">
             <span class="deal-id">ID: ${deal.id}</span>
             <button class="favorite-btn" data-id="${deal.id}" data-favorite="${isFavorite}">
-                ${isFavorite ? '❤️' : '🤍'}
+              ${isFavorite ? '❤️' : '🤍'}
             </button>
           </div>
           <img src="${deal.image}" alt="${deal.title}" class="deal-image">
@@ -206,49 +223,64 @@ const renderDeals = (deals, isBestDealsMode = false) => {
             <span class="deal-temperature">🔥 ${deal.temperature}°</span>
             <span class="deal-comments">💬 ${deal.comments} comments</span>
           </div>
-          ${dealScoreSection} <!-- Only show the deal score if valid -->
+          ${scoreSection}
           <a href="${deal.link}" target="_blank" class="view-deal-btn">Go to the offer</a>
         </div>
       `;
     })
     .join('');
-  
-  
 
   div.innerHTML = template;
   fragment.appendChild(div);
 
+  // Insertion dans le DOM
   const dealsButtonsContainer = document.getElementById('deals-buttons');
   if (dealsButtonsContainer) {
-    dealsButtonsContainer.innerHTML = ''; // Clean previous buttons
+    dealsButtonsContainer.innerHTML = '';
     dealsButtonsContainer.appendChild(dealsTitle);
-    dealsButtonsContainer.appendChild(showFavoritesBtn); // Add button to toggle favorites
+    dealsButtonsContainer.appendChild(controlsContainer);
   }
 
   const dealsCardsContainer = document.getElementById('deals-cards');
   if (dealsCardsContainer) {
-    dealsCardsContainer.innerHTML = ''; // Clean previous deal cards
-    dealsCardsContainer.appendChild(fragment); // Append new deal cards
+    dealsCardsContainer.innerHTML = '';
+    dealsCardsContainer.appendChild(fragment);
   }
 
+
+  // Events
+
+  // Favorites
   document.querySelectorAll('.favorite-btn').forEach(button => {
     button.addEventListener('click', handleFavoriteToggle);
   });
 
-  // Handle clicking on a deal card to view details
+  // Toggle favorites
+  showFavoritesBtn.addEventListener('click', () => {
+    showFavoritesOnly = !showFavoritesOnly;
+    renderDeals(deals);
+  });
+
+  // Click sur une carte pour afficher les ventes
   document.querySelectorAll('.deal-card').forEach(card => {
     card.addEventListener('click', async (event) => {
       const selectedSetId = card.querySelector('.deal-id')?.textContent.replace('ID: ', '').trim();
-      console.log('Selected Deal ID:', selectedSetId);
-
       if (!selectedSetId) return;
+
       currentSales = await fetchSales(selectedSetId);
+
+      // Mise à jour du sélecteur
+      const selectElement = document.getElementById('lego-set-id-select');
+      if (selectElement) {
+        selectElement.value = selectedSetId;
+      }
+      console.log('a');
+
       renderSales();
       renderIndicators(selectedSetId);
     });
   });
 };
-
 
 
 /**
@@ -336,6 +368,7 @@ const renderIndicators = async (legoSetId) => {
 
   const { average, totalDeals, P5, P25, P50 } = await fetchSalesStats(legoSetId);
   console.log("Fetched Stats:", { average, totalDeals, P5, P25, P50 });
+  
 
   // Mettez à jour les éléments avec les nouvelles valeurs
   spanAverage.innerHTML = `${average}`;
@@ -499,6 +532,13 @@ const sortDeals = async (filterBy, sortKey) => {
     render();
     // reset bouton sort by
     selectPrice.value = "selection";
+    // resset all deals btn 
+    bestDealsSlider.style.display = "none";  // Cacher le slider
+    bestDealsInfo.style.display = "none";  // Cacher le best-deals-info
+    showingBestDeals = false;  // Revenir à l'état "tous les deals"
+    bestDealsCount.textContent = 5;  // Remettre à 5 le nombre de deals affichés
+    toggleBestDealsBtn.textContent = "Best Deals!";  // Modifier le texte du bouton
+
 
   } catch (error) {
     console.error("Erreur lors de la récupération des deals :", error);
@@ -585,54 +625,75 @@ selectPrice.addEventListener('change', async (event) => {
   // Assurez-vous que la valeur du tri sélectionné est bien rétablie après le rendu
   selectPrice.value = currentSort;
   console.log(event.target.value);
+
+  // reset  all deals btn 
+  bestDealsSlider.style.display = "none";  // Cacher le slider
+    bestDealsInfo.style.display = "none";  // Cacher le best-deals-info
+    showingBestDeals = false;  // Revenir à l'état "tous les deals"
+    bestDealsCount.textContent = 5;  // Remettre à 5 le nombre de deals affichés
+    toggleBestDealsBtn.textContent = "Best Deals!";  // Modifier le texte du bouton
 });
 
 /**
  * Calcul des best deals 
  */
 // Sélection des éléments
+// 🎯 Sélection des éléments HTML
+// Sélection des éléments HTML
 const toggleBestDealsBtn = document.getElementById('toggle-best-deals');
 const bestDealsSlider = document.getElementById('best-deals-slider');
 const bestDealsCount = document.getElementById('best-deals-count');
+const bestDealsInfo = document.getElementById('best-deals-info');
+const dealsTitle = document.getElementById('DealsTitle');
 
-let showingBestDeals = false; // État actuel des deals affichés
-let bestDeals = []; // Stocker les meilleurs deals
+// États
+let bestDeals = [];
+let previousDeals = [];
+let previousPage = {};
 
-
-
-// Mettre à jour l'affichage en fonction du nombre de deals sélectionnés
+// Met à jour l'affichage en fonction du slider (ne modifie pas les previous!)
 const updateBestDealsDisplay = () => {
-  const dealsTitle = document.getElementById('DealsTitle');
   if (showingBestDeals) {
     const count = parseInt(bestDealsSlider.value, 10);
-    renderDeals(bestDeals.slice(0, count),true);
+    allDeals = bestDeals.slice(0, count);
     bestDealsCount.textContent = count;
     if (dealsTitle) dealsTitle.textContent = "Best Deals";
+  } else {
+    allDeals = previousDeals;
+    currentPagination = previousPage;
+    bestDealsCount.textContent = 5;
+    if (dealsTitle) dealsTitle.textContent = "All Deals";
   }
-  else{
-    render();
-  }
+
+  render();
 };
 
-// Gestion du clic sur le bouton "Best Deals!"
+// Gère le bouton "Best Deals!"
 toggleBestDealsBtn.addEventListener('click', async () => {
   if (!showingBestDeals) {
+    // Passe en mode Best Deals
+
+    // 👉 Sauvegarde les "All Deals" et pagination seulement une fois
+    previousDeals = [...allDeals];
+    previousPage = { ...currentPagination };
+
     bestDeals = await fetchBestDeals();
     bestDealsSlider.style.display = "inline";
     bestDealsSlider.value = 5;
-    showingBestDeals = true;
+    bestDealsInfo.style.display = "inline";
     toggleBestDealsBtn.textContent = "All Deals";
+    showingBestDeals = true;
+
   } else {
+    // 🔙 Retour au mode "All Deals"
     bestDealsSlider.style.display = "none";
-    showingBestDeals = false;
-    
-    
-    bestDealsCount.textContent  = 5;
+    bestDealsInfo.style.display = "none";
     toggleBestDealsBtn.textContent = "Best Deals!";
+    showingBestDeals = false;
   }
 
   updateBestDealsDisplay();
 });
 
-// Gestion du slider pour modifier le nombre de deals affichés
+// Slider = change le nombre de deals visibles (mais ne touche pas aux "previous")
 bestDealsSlider.addEventListener('input', updateBestDealsDisplay);
